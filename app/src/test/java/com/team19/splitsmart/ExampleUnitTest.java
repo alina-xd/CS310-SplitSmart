@@ -1,4 +1,4 @@
-package com.example.splitsmartgroup19;
+package com.team19.splitsmart;
 
 import org.junit.Test;
 

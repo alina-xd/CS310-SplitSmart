@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SplitSmartGroup19">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.account.LoginActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -21,6 +21,36 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.account.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.account.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.group.GroupListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.group.GroupFormActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.group.GroupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.transaction.ExpenseFormActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.transaction.SettlementFormActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.transaction.TransactionDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.summary.BalanceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.summary.MonthlySummaryActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

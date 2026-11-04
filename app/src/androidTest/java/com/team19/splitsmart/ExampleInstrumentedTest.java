@@ -1,4 +1,4 @@
-package com.example.splitsmartgroup19;
+package com.team19.splitsmart;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.example.splitsmartgroup19", appContext.getPackageName());
+        assertEquals("com.team19.splitsmart", appContext.getPackageName());
     }
 }

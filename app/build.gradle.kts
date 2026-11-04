@@ -1,15 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
 }
 
 android {
-    namespace = "com.example.splitsmartgroup19"
+    namespace = "com.team19.splitsmart"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.splitsmartgroup19"
+        applicationId = "com.team19.splitsmart"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -36,6 +37,9 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
     implementation(libs.material)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
