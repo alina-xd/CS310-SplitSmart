@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="e_history">Transaction history</string>
+    <string name="e_search_hint">Search titles and notes (case-sensitive)</string>
+    <string name="e_type">Type</string>
+    <string name="e_category">Category</string>
+    <string name="e_member">Member</string>
+    <string name="e_sort">Sort order</string>
+    <string name="e_all_members">All members</string>
+    <string name="e_all_categories">All categories</string>
+    <string name="e_expense">Expense</string>
+    <string name="e_settlement">Settlement</string>
+    <string name="e_row_title">%1$s · %2$s</string>
+    <string name="e_amount_date">%1$s · %2$s</string>
+    <string name="e_no_matches">No matching transactions.</string>
+    <string name="e_loading_history">Loading history…</string>
+    <string name="e_loading_details">Loading transaction…</string>
+    <string name="e_checking_lock">Checking expense lock…</string>
+    <string name="e_locked">Locked by a later settlement</string>
+    <string name="e_missing_group">No group was selected.</string>
+    <string name="e_group_missing">This group no longer exists.</string>
+    <string name="e_missing_transaction_ids">No transaction was selected.</string>
+    <string name="e_transaction_missing">This transaction no longer exists.</string>
+    <string name="e_members_only">Only group members can view this transaction.</string>
+    <string name="e_load_error">Unable to complete the request: %1$s</string>
+    <string name="e_retry">Retry</string>
+    <string name="e_unknown_member">Unknown member</string>
+    <string name="e_not_available">Not available</string>
+    <string name="e_details">Transaction details</string>
+    <string name="e_title">Title</string>
+    <string name="e_amount">Amount</string>
+    <string name="e_payer">Payer</string>
+    <string name="e_recipient">Recipient</string>
+    <string name="e_participants">Participants and shares</string>
+    <string name="e_split_method">Split method</string>
+    <string name="e_note">Note</string>
+    <string name="e_no_note">No note</string>
+    <string name="e_date">Date</string>
+    <string name="e_creator">Creator</string>
+    <string name="e_detail_field">%1$s: %2$s</string>
+    <string name="e_edit">Edit</string>
+    <string name="e_delete">Delete</string>
+    <string name="e_cancel">Cancel</string>
+    <string name="e_delete_title">Delete transaction?</string>
+    <string name="e_delete_message">This will permanently delete the transaction and update the group balances.</string>
+    <string name="e_deleting">Deleting transaction…</string>
+    <plurals name="e_transaction_count">
+        <item quantity="one">%d transaction</item>
+        <item quantity="other">%d transactions</item>
+    </plurals>
+    <string-array name="e_history_types">
+        <item>All types</item><item>Expense</item><item>Settlement</item>
+    </string-array>
+    <string-array name="e_categories">
+        <item>Food</item><item>Housing</item><item>Transportation</item><item>Entertainment</item><item>Other</item>
+    </string-array>
+    <string-array name="e_history_sort">
+        <item>Newest first</item><item>Oldest first</item>
+    </string-array>
+    <string-array name="e_split_methods">
+        <item>Equal</item><item>Exact amount</item><item>Percentage</item>
+    </string-array>
+</resources>
