@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Part C strings (split section and monthly summary). Android merges this with strings.xml. -->
+<resources>
+    <string name="split_method_label">Split method</string>
+    <string name="split_equal">Equal</string>
+    <string name="split_exact">Exact amount</string>
+    <string name="split_percent">Percentage</string>
+
+    <string name="summary_title">Monthly summary</string>
+    <string name="summary_month_label">Month</string>
+    <string name="summary_categories_label">Spending by category</string>
+</resources>
