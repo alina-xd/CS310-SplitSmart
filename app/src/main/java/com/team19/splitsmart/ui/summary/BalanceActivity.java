@@ -10,7 +10,7 @@ import com.team19.splitsmart.service.BalanceSummary;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.Extras;
 
-/** C4 Balance & Summary Screens. Owner: Feature 4. The user's balances in one group. */
+/** C4 Balance & Summary Screens. Owner: Part D. The user's balances in one group. */
 public class BalanceActivity extends AppCompatActivity {
 
     private BalanceService balanceService;
@@ -29,11 +29,11 @@ public class BalanceActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // TODO (Feature 4): balanceService.getSummary(groupId, currentUserId, ...) then showBalances.
+        // TODO (Part D): balanceService.getSummary(groupId, currentUserId, ...) then showBalances.
         // Reloading here (or listening for changes) keeps the page current after edits.
     }
 
     private void showBalances(BalanceSummary summary) {
-        // TODO (Feature 4)
+        // TODO (Part D)
     }
 }

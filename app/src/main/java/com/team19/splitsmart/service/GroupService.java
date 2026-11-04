@@ -9,7 +9,7 @@ import com.team19.splitsmart.util.Callback;
 import java.util.List;
 import java.util.Map;
 
-/** C6 Group Service. Owner: Feature 1. */
+/** C6 Group Service. Owner: Part A. */
 public class GroupService {
 
     private final GroupRepository groupRepo;
@@ -25,38 +25,37 @@ public class GroupService {
     }
 
     public void createGroup(String name, String description, String ownerId, Callback<Group> callback) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public void updateGroup(Group group, String requesterId, Callback<Void> callback) {
-        // TODO (Feature 1): owner only.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A): owner only.
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public void deleteGroup(String groupId, String requesterId, Callback<Void> callback) {
-        // TODO (Feature 1): owner only. GroupRepository.delete already removes the transactions too.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A): owner only. GroupRepository.delete already removes the transactions too.
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public void addMember(String groupId, String email, String requesterId, Callback<Void> callback) {
-        // TODO (Feature 1): owner only; specific messages for unknown email and existing member.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A): owner only; specific messages for unknown email and existing member.
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public void getGroupsFor(String userId, Callback<List<Group>> callback) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
+    /** Shared read used by every part (already implemented). Returns null if not found. */
     public void getGroup(String groupId, Callback<Group> callback) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        groupRepo.findById(groupId, callback);
     }
 
-    /** The group's members keyed by uid, for showing names. Added for implementation. */
+    /** The group's members keyed by uid, for showing names. Shared read (already implemented). */
     public void getMembers(Group group, Callback<Map<String, User>> callback) {
-        // TODO (Feature 1): delegate to userRepo.findByIds(group.getMemberIds(), callback).
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        userRepo.findByIds(group.getMemberIds(), callback);
     }
 }

@@ -20,6 +20,8 @@ public class Expense extends Transaction {
     private String payerId;
     private SplitMethod splitMethod = SplitMethod.EQUAL;
     private Map<String, Long> shares = new LinkedHashMap<>();
+    /** What the user typed per participant: dollars (EXACT_AMOUNT) or percent (PERCENTAGE); empty for EQUAL. Used to refill the form when editing. */
+    private Map<String, Double> splitInputs = new LinkedHashMap<>();
 
     /** Required by Firestore. */
     public Expense() {
@@ -100,5 +102,13 @@ public class Expense extends Transaction {
 
     public void setShares(Map<String, Long> shares) {
         this.shares = shares;
+    }
+
+    public Map<String, Double> getSplitInputs() {
+        return splitInputs;
+    }
+
+    public void setSplitInputs(Map<String, Double> splitInputs) {
+        this.splitInputs = splitInputs;
     }
 }

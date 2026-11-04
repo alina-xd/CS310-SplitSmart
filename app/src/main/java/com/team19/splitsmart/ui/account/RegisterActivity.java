@@ -10,7 +10,7 @@ import com.team19.splitsmart.service.AuthService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.group.GroupListActivity;
 
-/** C1 Account Screens. Owner: Feature 1. Registration form. */
+/** C1 Account Screens. Owner: Part A. Registration form. */
 public class RegisterActivity extends AppCompatActivity {
 
     private AuthService authService;
@@ -26,7 +26,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void onCreateAccountClicked() {
-        // TODO (Feature 1): call authService.register(...); on ValidationException call
+        // TODO (Part A): call authService.register(...); on ValidationException call
         // showFieldError(e.getField(), e.getMessage()); open the group list only on success.
         Intent intent = new Intent(this, GroupListActivity.class);
         startActivity(intent);
@@ -34,6 +34,6 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void showFieldError(String field, String message) {
-        // TODO (Feature 1): show the message next to the matching input.
+        // TODO (Part A): show the message next to the matching input.
     }
 }

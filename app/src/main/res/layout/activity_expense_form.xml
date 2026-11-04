@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Features 2 and 3. Replace the contents freely. -->
+<!-- Owner: Part B. The split section (Part C) is included below; keep the include. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -10,14 +10,18 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Expense"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:text="Expense" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Features 2 and 3)" />
+        android:text="Expense fields (Part B)" />
+
+    <include
+        layout="@layout/section_expense_split"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <Button
         android:id="@+id/buttonSave"

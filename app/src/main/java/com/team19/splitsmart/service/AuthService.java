@@ -4,9 +4,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.team19.splitsmart.data.model.User;
 import com.team19.splitsmart.data.repository.UserRepository;
+import com.team19.splitsmart.dev.DevSession;
 import com.team19.splitsmart.util.Callback;
 
-/** C5 Account Service. Owner: Feature 1. */
+/** C5 Account Service. Owner: Part A. */
 public class AuthService {
 
     private final UserRepository userRepo;
@@ -21,45 +22,48 @@ public class AuthService {
         this.auth = auth;
     }
 
-    /** The signed-in user's uid, or null if nobody is signed in. Firebase remembers the session. */
+    /**
+     * The signed-in user's uid, or null if nobody is signed in. Firebase remembers the session.
+     * Falls back to the user picked in Developer tools, so every part can test before login works.
+     */
     public String getCurrentUserId() {
         FirebaseUser user = auth.getCurrentUser();
-        return user == null ? null : user.getUid();
+        return user == null ? DevSession.getUserId() : user.getUid();
     }
 
     public void register(String name, String email, String uscId, String password, Callback<User> callback) {
-        // TODO (Feature 1): validate fields, check duplicate email and USC ID, create the
+        // TODO (Part A): validate fields, check duplicate email and USC ID, create the
         // Firebase account, then save the User with the email in lower case.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public void login(String email, String password, Callback<User> callback) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public void logout() {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        throw new UnsupportedOperationException("Not implemented yet (Part A)");
     }
 
     public void getCurrentUser(Callback<User> callback) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public void updateName(String newName, Callback<Void> callback) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part A)"));
     }
 
     public boolean isValidUscEmail(String email) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        throw new UnsupportedOperationException("Not implemented yet (Part A)");
     }
 
     public boolean isValidUscId(String uscId) {
-        // TODO (Feature 1)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 1)");
+        // TODO (Part A)
+        throw new UnsupportedOperationException("Not implemented yet (Part A)");
     }
 }

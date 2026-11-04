@@ -16,8 +16,14 @@ public class HistoryFilter {
     private boolean newestFirst = true;
 
     public boolean matches(Transaction t) {
-        // TODO (Feature 5): keyword (case-sensitive), type, category (expenses only), member.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 5)");
+        // TODO (Part E): keyword (case-sensitive), type, category (expenses only), member.
+        throw new UnsupportedOperationException("Not implemented yet (Part E)");
+    }
+
+    /** Case-sensitive search of expense titles, expense notes and settlement notes (FR-5.1). */
+    private boolean matchesKeyword(Transaction t) {
+        // TODO (Part E)
+        throw new UnsupportedOperationException("Not implemented yet (Part E)");
     }
 
     public String getKeyword() {

@@ -9,7 +9,7 @@ import com.team19.splitsmart.service.HistoryService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.Extras;
 
-/** C4 Balance & Summary Screens. Owner: Feature 5. Monthly expense summary. */
+/** C4 Balance & Summary Screens. Owner: Part C. Monthly expense summary. */
 public class MonthlySummaryActivity extends AppCompatActivity {
 
     private HistoryService historyService;
@@ -26,6 +26,7 @@ public class MonthlySummaryActivity extends AppCompatActivity {
     }
 
     private void onMonthSelected(String month) {
-        // TODO (Feature 5): historyService.getMonthlySummary(groupId, month, ...). month is "YYYY-MM".
+        // TODO (Part C): historyService.getMonthlySummary(groupId, month, ...), or listen with
+        // historyService.listen(...) and call MonthlySummaryCalculator.compute so it updates by itself.
     }
 }

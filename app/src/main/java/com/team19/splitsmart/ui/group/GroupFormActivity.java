@@ -9,7 +9,7 @@ import com.team19.splitsmart.service.GroupService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.Extras;
 
-/** C2 Group Screens. Owner: Feature 1. Create a group, or edit one when GROUP_ID is passed. */
+/** C2 Group Screens. Owner: Part A. Create a group, or edit one when GROUP_ID is passed. */
 public class GroupFormActivity extends AppCompatActivity {
 
     private GroupService groupService;
@@ -27,7 +27,7 @@ public class GroupFormActivity extends AppCompatActivity {
     }
 
     private void onSaveClicked() {
-        // TODO (Feature 1): createGroup(...) or updateGroup(...), then finish() on success.
+        // TODO (Part A): createGroup(...) or updateGroup(...), then finish() on success.
         finish();
     }
 }

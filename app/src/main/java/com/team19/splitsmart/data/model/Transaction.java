@@ -38,12 +38,6 @@ public abstract class Transaction {
         return TYPE_EXPENSE.equals(type);
     }
 
-    /** Case-sensitive keyword search (FR-5.1). */
-    public boolean matchesKeyword(String keyword) {
-        // TODO (Feature 5): match against the note here; Expense should also match its title.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 5)");
-    }
-
     public String getId() {
         return id;
     }

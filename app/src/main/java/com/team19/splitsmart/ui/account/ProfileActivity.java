@@ -10,7 +10,7 @@ import com.team19.splitsmart.R;
 import com.team19.splitsmart.service.AuthService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 
-/** C1 Account Screens. Owner: Feature 1. View and edit name, log out. */
+/** C1 Account Screens. Owner: Part A. View and edit name, log out. */
 public class ProfileActivity extends AppCompatActivity {
 
     private AuthService authService;
@@ -27,12 +27,12 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void onSaveNameClicked() {
-        // TODO (Feature 1): authService.updateName(...). Email and USC ID are read-only.
+        // TODO (Part A): authService.updateName(...). Email and USC ID are read-only.
         Toast.makeText(this, "Not implemented yet", Toast.LENGTH_SHORT).show();
     }
 
     private void onLogOutClicked() {
-        // TODO (Feature 1): call authService.logout() first.
+        // TODO (Part A): call authService.logout() first.
         Intent intent = new Intent(this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

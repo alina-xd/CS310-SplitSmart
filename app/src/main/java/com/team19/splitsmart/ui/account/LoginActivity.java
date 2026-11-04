@@ -6,11 +6,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.team19.splitsmart.R;
+import com.team19.splitsmart.dev.DevActivity;
 import com.team19.splitsmart.service.AuthService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.group.GroupListActivity;
 
-/** C1 Account Screens. Owner: Feature 1. Login screen; the app starts here. */
+/** C1 Account Screens. Owner: Part A. Login screen; the app starts here. */
 public class LoginActivity extends AppCompatActivity {
 
     private AuthService authService;
@@ -24,10 +25,12 @@ public class LoginActivity extends AppCompatActivity {
         authService = new AuthService();
         findViewById(R.id.buttonLogin).setOnClickListener(v -> onLoginClicked());
         findViewById(R.id.buttonSignUp).setOnClickListener(v -> onSignUpClicked());
+        // Development only: remove this line, the button and the dev package before the demo.
+        findViewById(R.id.buttonDevTools).setOnClickListener(v -> startActivity(new Intent(this, DevActivity.class)));
     }
 
     private void onLoginClicked() {
-        // TODO (Feature 1): read email and password, call authService.login(...), and open the
+        // TODO (Part A): read email and password, call authService.login(...), and open the
         // group list only on success. Also skip this screen if authService.getCurrentUserId() != null.
         Intent intent = new Intent(this, GroupListActivity.class);
         startActivity(intent);

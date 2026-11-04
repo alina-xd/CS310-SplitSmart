@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Features 1 and 5. Replace the contents freely. -->
+<!-- Shared shell for the group screen; nobody needs to edit it. Sections: Part A (members), Part E (history). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -10,14 +10,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Group"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Features 1 and 5)" />
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:text="Group" />
 
     <Button
         android:id="@+id/buttonAddExpense"
@@ -43,28 +37,15 @@
         android:layout_height="wrap_content"
         android:text="Monthly summary" />
 
-    <Button
-        android:id="@+id/buttonEditGroup"
+    <include
+        layout="@layout/section_group_members"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Edit group" />
+        android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/buttonAddMember"
+    <include
+        layout="@layout/section_group_history"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add member" />
-
-    <Button
-        android:id="@+id/buttonDeleteGroup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Delete group" />
-
-    <Button
-        android:id="@+id/buttonOpenTransactionPlaceholder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Open a transaction (placeholder)" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>

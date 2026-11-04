@@ -10,7 +10,7 @@ import com.team19.splitsmart.service.SettlementService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.Extras;
 
-/** C3 Transaction Screens. Owner: Feature 4. Records a settlement, or edits one when TRANSACTION_ID is passed. */
+/** C3 Transaction Screens. Owner: Part D. Records a settlement, or edits one when TRANSACTION_ID is passed. */
 public class SettlementFormActivity extends AppCompatActivity {
 
     private SettlementService settlementService;
@@ -32,11 +32,11 @@ public class SettlementFormActivity extends AppCompatActivity {
     }
 
     private void onDirectionChanged(boolean userPaid) {
-        // TODO (Feature 4): list members with a balance in the chosen direction.
+        // TODO (Part D): list members with a balance in the chosen direction.
     }
 
     private void onSaveClicked() {
-        // TODO (Feature 4): createSettlement(...) or updateSettlement(...), then finish() on success.
+        // TODO (Part D): createSettlement(...) or updateSettlement(...), then finish() on success.
         finish();
     }
 }

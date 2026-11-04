@@ -3,11 +3,12 @@ package com.team19.splitsmart.service;
 import com.team19.splitsmart.data.model.Expense;
 import com.team19.splitsmart.data.model.SplitMethod;
 import com.team19.splitsmart.data.repository.TransactionRepository;
+import com.team19.splitsmart.service.split.SplitStrategyFactory;
 import com.team19.splitsmart.util.Callback;
 
 import java.util.Map;
 
-/** C7 Expense Service. Owners: Feature 2 (create/edit/delete), Feature 3 (previewShares). */
+/** C7 Expense Service. Owners: Part B (create/edit/delete), Part C (previewShares). */
 public class ExpenseService {
 
     private final TransactionRepository txRepo;
@@ -28,27 +29,27 @@ public class ExpenseService {
      * percentages for PERCENTAGE. Pure calculation, no Firebase call.
      */
     public Map<String, Long> previewShares(long totalCents, SplitMethod method, Map<String, Double> inputs) {
-        // TODO (Feature 3): SplitStrategyFactory.getStrategy(method).computeShares(totalCents, inputs)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 3)");
+        // Part C implements the strategies; this delegation is done, so Part B never edits it.
+        return new SplitStrategyFactory().getStrategy(method).computeShares(totalCents, inputs);
     }
 
     public void createExpense(Expense expense, Callback<Void> callback) {
-        // TODO (Feature 2): validate, nextSequenceNo, set createdDate = DateUtil.today(), save.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 2)");
+        // TODO (Part B): validate, nextSequenceNo, set createdDate = DateUtil.today(), save.
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part B)"));
     }
 
     public void updateExpense(Expense expense, String editorId, Callback<Void> callback) {
-        // TODO (Feature 2): creator only, not locked, keep createdDate and sequenceNo.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 2)");
+        // TODO (Part B): creator only, not locked, keep createdDate and sequenceNo.
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part B)"));
     }
 
     public void deleteExpense(Expense expense, String editorId, Callback<Void> callback) {
-        // TODO (Feature 2): creator only, not locked.
-        throw new UnsupportedOperationException("Not implemented yet (Feature 2)");
+        // TODO (Part B): creator only, not locked.
+        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part B)"));
     }
 
     private void validate(Expense expense) throws ValidationException {
-        // TODO (Feature 2)
-        throw new UnsupportedOperationException("Not implemented yet (Feature 2)");
+        // TODO (Part B)
+        throw new UnsupportedOperationException("Not implemented yet (Part B)");
     }
 }

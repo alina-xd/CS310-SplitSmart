@@ -11,7 +11,7 @@ import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.Extras;
 import com.team19.splitsmart.ui.account.ProfileActivity;
 
-/** C2 Group Screens. Owner: Feature 1. The user's groups. */
+/** C2 Group Screens. Owner: Part A. The user's groups. */
 public class GroupListActivity extends AppCompatActivity {
 
     private GroupService groupService;
@@ -25,7 +25,7 @@ public class GroupListActivity extends AppCompatActivity {
         groupService = new GroupService();
         findViewById(R.id.buttonCreateGroup).setOnClickListener(v -> startActivity(new Intent(this, GroupFormActivity.class)));
         findViewById(R.id.buttonProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
-        findViewById(R.id.buttonOpenGroupPlaceholder).setOnClickListener(v -> onGroupSelected("placeholder-group"));
+        findViewById(R.id.buttonOpenGroupPlaceholder).setOnClickListener(v -> onGroupSelected("dev-group-trip"));
     }
 
     @Override
@@ -35,7 +35,7 @@ public class GroupListActivity extends AppCompatActivity {
     }
 
     private void loadGroups() {
-        // TODO (Feature 1): groupService.getGroupsFor(currentUserId, ...) and show them in a list
+        // TODO (Part A): groupService.getGroupsFor(currentUserId, ...) and show them in a list
         // whose rows call onGroupSelected(group.getGroupId()). Then remove the placeholder button.
     }
 

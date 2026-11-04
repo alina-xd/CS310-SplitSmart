@@ -31,4 +31,12 @@
         android:layout_height="wrap_content"
         android:text="Create an account" />
 
+    <!-- Development only: remove before the demo. -->
+    <Button
+        android:id="@+id/buttonDevTools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Developer tools" />
+
 </LinearLayout>

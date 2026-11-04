@@ -13,7 +13,7 @@ import com.team19.splitsmart.service.SettlementService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.Extras;
 
-/** C3 Transaction Screens. Owners: Feature 2 (expense details) and Feature 4 (settlement details).
+/** C3 Transaction Screens. Owner: Part E (calls Part B's and Part D's edit screens and delete methods).
  * Shows one transaction; Edit and Delete only for its creator and only if allowed. */
 public class TransactionDetailActivity extends AppCompatActivity {
 
@@ -38,7 +38,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
     }
 
     private void onEditClicked() {
-        // TODO (Features 2 and 4): open SettlementFormActivity instead when the transaction is a settlement.
+        // TODO (Part E): open SettlementFormActivity instead when the transaction is a settlement.
         Intent intent = new Intent(this, ExpenseFormActivity.class);
         intent.putExtra(Extras.GROUP_ID, groupId);
         intent.putExtra(Extras.TRANSACTION_ID, transactionId);
@@ -46,7 +46,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
     }
 
     private void onDeleteClicked() {
-        // TODO (Features 2 and 4): ask for confirmation first (required), then delete.
+        // TODO (Part E): ask for confirmation first (required), then delete.
         Toast.makeText(this, "Not implemented yet", Toast.LENGTH_SHORT).show();
     }
 }

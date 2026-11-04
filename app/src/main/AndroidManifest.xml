@@ -51,6 +51,10 @@
         <activity
             android:name=".ui.summary.MonthlySummaryActivity"
             android:exported="false" />
+        <!-- Development only: remove before the demo. -->
+        <activity
+            android:name=".dev.DevActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
