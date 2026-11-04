@@ -22,8 +22,18 @@ public class HistoryService {
     }
 
     public void getHistory(String groupId, HistoryFilter filter, Callback<List<Transaction>> callback) {
-        // TODO (Part E): filter with HistoryFilter.matches, sort by sequenceNo.
-        callback.onFailure(new UnsupportedOperationException("Not implemented yet (Part E)"));
+        HistoryFilter effectiveFilter = filter == null ? new HistoryFilter() : filter;
+        txRepo.findByGroup(groupId, new Callback<List<Transaction>>() {
+            @Override
+            public void onSuccess(List<Transaction> transactions) {
+                callback.onSuccess(effectiveFilter.apply(transactions));
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                callback.onFailure(e);
+            }
+        });
     }
 
     /** month is "YYYY-MM". Settlements are excluded (FR-5.2). */
