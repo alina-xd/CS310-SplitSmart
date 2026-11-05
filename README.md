@@ -37,7 +37,7 @@ SplitSmart lets USC students share expenses in groups and see who owes whom.
 
 **Developer tools** (test-data seeding and "Act as" users) were used during development and have been removed. Test with real accounts.
 
-**Integration status.** Parts A-E are implemented. Settlement validation and expense locking are active. See [integrated validation](docs/integration-validation.md), [test commands](tests/README.md), and [implementation design changes](docs/implementation.md). The per-part instructions below remain the implementation checklist.
+**Integration status.** Parts A-E are implemented. Settlement validation and expense locking are active. See [integrated validation](docs/integration-validation.md), [test commands](tests/README.md), and [implementation design changes](docs/implementation.md), and the [implementation PDF](output/pdf/SplitSmart_Project_2.3_Implementation_Team19.pdf). The per-part instructions below remain the implementation checklist.
 
 **Already implemented, use freely:** every repository method, `GroupService.getGroup`, `GroupService.getMembers`, `HistoryService.getTransaction`, `HistoryService.listen`, `HistoryService.getMonthlySummary` (calls Part C's calculator), `ExpenseService.previewShares` (calls Part C's strategies), `MoneyUtil`, `DateUtil`.
 

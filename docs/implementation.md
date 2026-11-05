@@ -1,191 +1,207 @@
 # SplitSmart
 
-Project 2.3: Implementation · Team 19
+Project 2.3: Implementation
+
+Team 19
 
 ## 1 Project Title and Authors
 
 Project title: SplitSmart (Project A)
+
 Team number: Team 19
+
 Customer: TA Yuzhou Fang
 
-| Team member | USC email |
-| --- | --- |
-| Chenyang Wang | cwang120@usc.edu |
-| Alina Du | alinadu@usc.edu |
-| Dawi Yoon | dawiyoon@usc.edu |
-| William Wang | wwang767@usc.edu |
-| Yang Chen | ychen529@usc.edu |
+Team members:
+
+Chenyang Wang, cwang120@usc.edu
+
+Alina Du, alinadu@usc.edu
+
+Dawi Yoon, dawiyoon@usc.edu
+
+William Wang, wwang767@usc.edu
+
+Yang Chen, ychen529@usc.edu
 
 ## 2 Preface
 
-SplitSmart is an Android application for USC students and alumni who share expenses. It records expenses and payments made outside the app, divides each expense among its participants, and shows the balance between each pair of members. It does not transfer money.
+SplitSmart is an Android application that helps USC students and alumni record shared expenses, work out who owes whom, and record payments made outside the app. It provides one place for roommates, friends, and student organizations who regularly split expenses. SplitSmart does not send or receive money and is meant to be used alongside payment applications like Venmo.
 
-This document describes the implementation and identifies changes and refinements to Project 2.2. It is intended for the customer, the teaching staff, and team members maintaining the application. The requirements in Project 2.1 remain the basis for the application, with the implementation differences stated in Section 6.
+This document describes the implementation of SplitSmart based on the requirements in Project 2.1 and the design in Project 2.2. It explains what changed during implementation and why, and presents the revised architecture and detailed design. The intended readers are the customer, the teaching staff, and team members who will maintain the application.
 
 ## 3 Introduction
 
-The integrated application includes accounts and groups, expenses with three split methods, balances, settlements, transaction history, and monthly summaries. Parts A, B, C, and E were integrated before the Part D work described here. Part D completes the balance and settlement services and screens and connects the settled-expense policy to the existing expense and detail screens.
+### 3.1 Main Functions
 
-The project uses Java and Android XML layouts. Firebase Authentication handles email/password accounts, and Cloud Firestore stores profiles, groups, expenses, and settlements. Amounts are stored as whole cents. Each group's sequence counter gives transactions a stable order even when several have the same creation date.
+The application provides the five functions described in the earlier documents: accounts and groups, expenses and splitting, balances, settlements, and history and summaries. Members can split an expense equally, by exact amounts, or by percentages. They can then review separate totals for what they owe and what they should receive, record repayments, and look up earlier transactions.
 
-The sections below distinguish architectural changes, detailed implementation changes, and requirement differences. The companion validation report describes the tests and their limits. A passing local test does not establish that a particular deployed Firestore ruleset or a second physical device has been verified.
+### 3.2 Organization of This Document
+
+Section 4 describes the architectural changes and the component mapping. Section 5 explains the detailed changes with revised class and sequence diagrams. Section 6 identifies differences from the original requirements and explains their effects on the design. Retained design decisions are identified separately from changes and implementation details.
+
+<!-- pagebreak -->
 
 ## 4 Architectural Design Change
 
-### 4.1 The three-layer structure is retained
+### 4.1 Architectural Style and Major Components
 
-The presentation, service, and data layers from Project 2.2 remain in place. Activities call services, services apply the business rules and use repositories, and repositories access Firestore. Authentication is the exception already identified in the design: AuthService also uses Firebase Authentication. No production screen added in Part D reads Firestore directly.
+The three-layer architecture from Project 2.2 is retained. The presentation layer displays information and collects input. The service layer applies the business rules, and the data layer stores and retrieves records. Firebase Authentication checks account credentials, while Cloud Firestore stores profiles, groups, expenses, and settlements. The twelve components keep their original feature responsibilities.
 
-```mermaid
-flowchart TB
-    P["Presentation: accounts, groups, transactions, balances, monthly summary"]
-    S["Services: Auth, Group, Expense, Settlement, Balance, History"]
-    C["Pure calculations: split strategies, HistoryFilter, MonthlySummaryCalculator"]
-    R["Repositories: User, Group, Transaction"]
-    M["Models: User, Group, Expense, Settlement"]
-    F["Cloud Firestore"]
-    A["Firebase Authentication"]
-    P --> S
-    S --> C
-    S --> R
-    R --> M
-    R --> F
-    S --> A
-```
+![Figure 1. Revised architectural configuration. The numbered components correspond to the mapping in Section 4.4. Arrows indicate the main dependencies between layers; AuthService also uses Firebase Authentication.](figures/implementation-architecture.png)
 
-Figure 1. Revised implementation architecture. The arrows show dependencies, rather than every individual method call.
+### 4.2 Change: Dividing Large Screens into Sections
 
-### 4.2 Screen responsibilities are split into sections
+In Project 2.2, GroupActivity was responsible for the group page and its transaction listener. In the implementation, GroupMembersSection handles the member controls and GroupHistorySection handles the transaction list, filters, and listener. GroupActivity holds these sections and opens the other screens. ExpenseFormActivity similarly delegates split inputs and previews to ExpenseSplitSection.
 
-Project 2.2 placed the group page's transaction listener on GroupActivity. The implementation puts it in GroupHistorySection. GroupMembersSection owns the member controls, while GroupActivity forwards lifecycle events and handles navigation. ExpenseSplitSection similarly owns split inputs and previews inside ExpenseFormActivity.
+We made this change because the member list, history, and split inputs have different reasons to change. Keeping them in separate classes made it easier to work on the features without repeatedly editing one large activity. These classes still belong to the presentation layer, so the change does not introduce another layer.
 
-This division let the team implement different parts without repeatedly changing the same activity. The group overview and filters are now list headers, so the member controls and transaction history can all be reached by scrolling on a phone.
+### 4.3 Retained Design: Services Own the Rules
 
-### 4.3 Asynchronous boundaries are explicit
+Balance calculation, expense validation, settlement validation, and locking remain in services. A screen can hide an action that is not allowed, but the service checks the saved record again before changing it. This keeps the rule consistent when a screen was opened before another transaction changed the group.
 
-Repository and service operations return results through Callback<T>. Success and failure are separate, and ValidationException identifies a form field. Screens disable saving while a write is in progress. The balance, history, and monthly-summary screens register Firestore listeners while visible and remove them when stopped. Part D and E use request generations to ignore old reads after a screen has stopped or a newer request has started.
+<!-- pagebreak -->
 
-This is an implementation refinement of the design's callback flows. It lets the UI remain responsive while Firebase reads and writes complete.
+### 4.4 Revised Mapping of Classes to Components
 
-### 4.4 Local integration testing is separate from the deployed backend
+The table below updates the class mapping in Project 2.2. The section classes and MonthlySummaryCalculator are the main additions; the remaining feature boundaries are retained.
 
-The Android instrumentation runner points Firebase Authentication and Firestore at local emulator endpoints before launching tested screens. The ordinary application still uses the checked-in Firebase configuration. The local test rules are deliberately permissive and are never deployed by the test commands. This arrangement tests the real SDK, serialization, callbacks, and UI without resetting the team's shared data.
+| Component | Classes in the implementation |
+| --- | --- |
+| C1 Account Screens | LoginActivity, RegisterActivity, ProfileActivity |
+| C2 Group Screens | GroupListActivity, GroupFormActivity, GroupActivity; added GroupMembersSection and GroupHistorySection |
+| C3 Transaction Screens | ExpenseFormActivity, SettlementFormActivity, TransactionDetailActivity; added ExpenseSplitSection |
+| C4 Balance and Summary Screens | BalanceActivity, MonthlySummaryActivity |
+| C5 Account Service | AuthService; ValidationException is also used by the other services |
+| C6 Group Service | GroupService |
+| C7 Expense Service | ExpenseService, SplitStrategyFactory, SplitStrategy, EqualSplit, ExactAmountSplit, PercentageSplit |
+| C8 Settlement Service | SettlementService |
+| C9 Balance Service | BalanceService, BalanceSummary, PairBalance |
+| C10 History and Summary Service | HistoryService, HistoryFilter, MonthlySummary; added MonthlySummaryCalculator |
+| C11 Data Model | User, Group, Transaction, Expense, Settlement, Category, SplitMethod |
+| C12 Data Access | UserRepository, GroupRepository, TransactionRepository, TransactionListener |
+
+### 4.5 Implementation Detail: Callbacks and Screen Lifecycles
+
+The sequence diagrams in Project 2.2 already described callback responses. The implementation makes this contract explicit through Callback<T>, with separate onSuccess and onFailure methods. ValidationException names the problem field so that the form can display the message beside the corresponding input.
+
+The history, balance, and monthly-summary screens add transaction listeners on start and remove them on stop. History, balance, and settlement screens also reject stale asynchronous responses, preventing an earlier read from replacing newer information or updating a stopped screen. Transaction forms disable Save while loading or writing.
+
+### 4.6 Implementation Detail: Storage
+
+Firestore stores users at users/{uid}, groups at groups/{groupId}, and expenses and settlements together at groups/{groupId}/transactions/{id}, distinguished by type. A Firestore transaction increments seqCounter to assign sequence numbers. For manually prepared records, TransactionRepository fills missing IDs from the document ID and parent group path when reading. It preserves existing values and does not write this fallback to storage.
+
+<!-- pagebreak -->
 
 ## 5 Detailed Design Change
 
-### 5.1 Revised class responsibilities
+### 5.1 Change: Presentation Classes and Their Responsibilities
 
-| Component | Implemented classes and refinement |
+Figure 2 shows the new section classes and the main calls between them. GroupHistorySection now implements TransactionListener instead of GroupActivity. GroupActivity forwards start and stop events to it and refreshes GroupMembersSection when the group page resumes. ExpenseFormActivity supplies the amount, payer, and selected participants to ExpenseSplitSection.
+
+![Figure 2. Revised class diagram for the extracted screen sections. Only the public operations and dependencies relevant to this change are shown. GroupHistorySection also uses GroupService to obtain member names.](figures/implementation-screen-classes.png)
+
+ExpenseSplitSection keeps the selected split method, the entered values, and the share preview together. Its getShares method either returns valid shares or throws ValidationException. This lets the form use the same result that the user has just reviewed, instead of calculating the split again in another place.
+
+The group overview, history heading, and filters are list headers, so they scroll with the transaction rows. This addresses a layout problem found during integration: the owner's controls could otherwise leave too little space for the history. It changes the layout of the group page without changing the stored data or the group's permissions.
+
+### 5.2 Change: Preserving the Inputs Used for a Split
+
+Expense stores both shares and splitInputs. The shares map holds the final whole-cent amount for each participant. The splitInputs map holds the entered dollar amounts or percentages, and is empty for an equal split. ExpenseSplitSection.load restores these values when the creator edits an expense.
+
+The two maps serve different purposes. Rounded shares are the values used to calculate debt, but they are not always enough to reconstruct the percentages that the member originally typed. Keeping the inputs avoids changing those entries merely because an expense was reopened for editing.
+
+<!-- pagebreak -->
+
+### 5.3 Revised Service Classes and Result Objects
+
+Figure 3 shows the service relationships used by the implemented balance, settlement, and history features. The division between these services is retained from Project 2.2. The pure calculation entry point in BalanceService, the protected result list in BalanceSummary, and the separate MonthlySummaryCalculator are implementation refinements.
+
+![Figure 3. Revised service and result-class diagram. Callback parameters and some method parameters are omitted to keep the diagram readable. HistoryService also uses TransactionRepository for shared reads and listeners.](figures/implementation-service-classes.png)
+
+BalanceService.compute calculates a BalanceSummary from a group's transaction snapshot. A positive pair balance means that the other member owes the user; a negative value means that the user owes the other member. The service returns the nonzero pairs and two separate totals. BalanceActivity adds a settled row for other group members with no outstanding amount. BalanceSummary copies its list and exposes it as unmodifiable, so a screen cannot accidentally change the result.
+
+The integer-cent representation and pairwise rules are retained design decisions. Opposite debts between the same two people cancel, but debts are never transferred through a third person. A settlement changes only the pair between its payer and recipient. Arithmetic overflow is reported instead of returning an incorrect wrapped amount.
+
+HistoryFilter.apply performs the matching and ordering used by both service reads and the live list. MonthlySummaryCalculator.compute contains the monthly arithmetic without depending on Firebase. Moving this calculation into its own class makes it possible to test category totals, expense counts, and exclusion of settlements directly.
+
+<!-- pagebreak -->
+
+### 5.4 Implementation Detail: Recording a Settlement
+
+The settlement form lists only members who have an outstanding balance in the chosen direction. SettlementService checks the amount, the parties, the creator, and group membership before saving. It uses BalanceService.getPairBalance to find what the payer owes the recipient. The largest allowed amount is max(0, -pairBalance). Figure 4 shows the successful flow after each check passes.
+
+![Figure 4. Revised sequence diagram for recording a settlement. Basic validation occurs before the group read; membership is checked before the balance read. A validation failure or repository error returns through onFailure and stops the flow.](figures/implementation-settlement-sequence.png)
+
+### 5.5 Implementation Detail: Editing a Settlement
+
+The service first loads the saved settlement and checks its creator. Only the amount and note can be changed, as described in UC-4. The original parties, creator, creation date, and sequence number are kept. For saved amount S and current signed pair balance B from the payer's perspective, the editing limit is max(0, S - B).
+
+This calculation removes the old settlement's effect before checking the replacement. For example, if Alice owed Bob $11 and recorded a $5 payment, the current debt is $6, but the original settlement can still be edited up to $11. Removing the effect before clamping to zero also handles a later expense that reverses the direction of the debt.
+
+<!-- pagebreak -->
+
+### 5.6 Implementation Detail: Locking and Deletion
+
+The locking policy is retained. SettlementService.isLocked reads the group's current transactions and looks for a settlement with a greater sequence number that connects the expense's payer to a different participant with a positive share. Either direction counts. A settlement between two participants who are not the expense's payer does not lock that expense. Section 6.3 explains the positive-share refinement to the original wording.
+
+No lock flag is stored on an expense. Deleting a settlement therefore unlocks an expense when no other later settlement covers it. TransactionDetailActivity checks the rule before showing Edit or Delete, and ExpenseService checks it again before writing. Expense and settlement deletion also require confirmation on the detail screen and a creator check in the service.
+
+### 5.7 Change: Shared History Processing and Monthly Calculation
+
+The history section keeps the latest transaction snapshot and applies HistoryFilter whenever the keyword, type, category, member, or sort option changes. Filters are combined, and keyword matching is case-sensitive. Both sort directions use sequenceNo, so records saved on the same day still have a stable order.
+
+![Figure 5. Revised sequence diagram for live history updates and local filtering. An initial getHistory read is also used to show read errors; it does not replace a newer listener snapshot.](figures/implementation-history-sequence.png)
+
+MonthlySummaryActivity uses the same transaction-listener mechanism and passes the snapshot to MonthlySummaryCalculator for the selected month. The calculator counts only expenses and supplies a total for all five categories, including zero totals. Editing an expense keeps its creation date, so it stays in the same month's summary.
+
+<!-- pagebreak -->
+
+### 5.8 Implementation Detail: Data Integrity and Verification
+
+Creating an expense or settlement assigns a sequence number and the device's local date. Editing preserves both. GroupRepository uses a merge when saving group information so that changing the group name does not reset seqCounter. Deleting a group also deletes its transaction documents, because deleting the Firestore parent alone would leave the subcollection behind.
+
+ExpenseService checks that the creator, payer, and participants belong to the group, that the payer is a participant, and that nonnegative shares add up to the full amount. The creator need not participate in the expense. SettlementService separately checks that the creator is either the payer or the recipient. Update and delete operations use the saved record to check ownership rather than trusting a creator ID supplied by the form.
+
+EqualSplit distributes remainder cents in participant order. ExactAmountSplit checks the entered amounts against the total. PercentageSplit uses decimal arithmetic, keeps 0% shares at zero, and distributes the remainder among participants with positive percentages. The accepted input tolerance is normalized before rounding so that a large expense still divides into exactly its total amount.
+
+The complete application was built and checked on 4 November 2026. The results below apply to the application code in commit ec69c63, including the final repository and interface fixes and removal of developer tools.
+
+| Check | Observed result |
 | --- | --- |
-| C1 Account screens | LoginActivity, RegisterActivity, ProfileActivity retain their original responsibilities. |
-| C2 Group screens | GroupListActivity and GroupFormActivity; GroupActivity hosts GroupMembersSection and GroupHistorySection. The history listener moved into its section. |
-| C3 Transaction screens | ExpenseFormActivity delegates split controls to ExpenseSplitSection. SettlementFormActivity records either payment direction. TransactionDetailActivity handles full details and confirmation dialogs. |
-| C4 Balance and summary screens | BalanceActivity renders separate totals and all other members, including settled pairs. MonthlySummaryActivity selects a month and renders all five categories. |
-| C5-C6 Account and group services | AuthService and GroupService perform validation and permission checks. ValidationException carries the field name. |
-| C7 Expense service | ExpenseService delegates previews to SplitStrategyFactory and checks the saved creator and derived lock before updates or deletion. It also rejects negative shares and creators outside the group. |
-| C8 Settlement service | SettlementService uses TransactionRepository, GroupRepository, and BalanceService. The group repository dependency makes membership validation explicit. |
-| C9 Balance service | BalanceService computes pair balances. Its pure compute method can operate on a supplied snapshot. BalanceSummary defensively copies its result list; PairBalance retains its signed-cent convention. |
-| C10 History and summary | HistoryFilter owns matching and sorting. MonthlySummaryCalculator is a separate pure class; HistoryService delegates to these calculations and provides shared reads/listeners. |
-| C11 Models | The model hierarchy is retained. Expense.splitInputs stores entered dollars or percentages for editing; shares stores the final cents. |
-| C12 Repositories | UserRepository, GroupRepository, TransactionRepository, and TransactionListener retain the data-access boundary. Transactions share a group subcollection and a type field. |
+| JVM unit tests | 81 tests passed, with no failures or errors. |
+| Android instrumentation | 8 tests passed on an ARM64 Android 16 / API 36 emulator. |
+| Application builds | Debug and unsigned Release APKs built successfully. |
+| Android lint | No errors; 74 warnings remained, mainly for text resources and screen orientation. |
 
-```mermaid
-classDiagram
-    SettlementFormActivity --> SettlementService
-    SettlementFormActivity --> BalanceService
-    BalanceActivity --> BalanceService
-    BalanceActivity --> HistoryService
-    ExpenseService --> SettlementService : checks locks
-    TransactionDetailActivity --> SettlementService : locks and deletion
-    SettlementService --> BalanceService : repayment limit
-    SettlementService --> GroupRepository : membership
-    SettlementService --> TransactionRepository : read and write
-    BalanceService --> TransactionRepository
-    BalanceService --> BalanceSummary
-    BalanceSummary o-- PairBalance
-    HistoryService --> HistoryFilter
-    HistoryService --> MonthlySummaryCalculator
-    HistoryService --> TransactionRepository
-```
+The tests cover split arithmetic, balance calculations, history filters, monthly totals, permissions, and settlement limits. The Android scenarios use the real Firebase SDKs with local backends and exercise expense forms, settlement creation and editing, confirmation dialogs, automatic balance updates, screen recreation, and a server-source read. One unit test and one Android test are the original template smoke checks; the remaining tests cover application behavior.
 
-Figure 2. Revised dependencies around balances, settlements, and history. Other classes remain mapped in the table above.
+The run used one Android API level and local Firebase emulators. It did not test two physical devices, the deployed Firestore security rules, or simultaneous submissions from different clients. The debt check and settlement write remain separate operations, so concurrent submissions could race. Addressing that case would require an atomic backend operation or a transactional ledger design. Developer tools have been removed, and authentication now uses only the signed-in Firebase account. The shared test-mode rules still require review before a public release.
 
-### 5.2 Balance calculation
-
-For user U, the service stores a signed amount for each other member. If U paid an expense, each other participant's share is added to that member's balance. If U is a participant but did not pay, U's share is subtracted from the balance with the payer. A settlement increases the payer's balance with its recipient and decreases the recipient's balance with its payer.
-
-Positive balances contribute to “To receive”; negative balances contribute their absolute values to “To pay.” These totals are never netted. Transactions in a different group and debts between unrelated members do not affect the result. The UI fills in zero rows for other group members as “settled.” Arithmetic overflow is reported instead of displaying a wrapped balance.
-
-### 5.3 Settlement creation, editing, and deletion
-
-Creating a settlement checks that the amount is positive, the two parties differ, both belong to the group, and the creator is one of those parties. The maximum is max(0, -pairBalance(payer, recipient)). Amounts above this maximum return an amount-field error showing what is owed. A valid record receives today's date and the next sequence number.
-
-Editing loads the saved record to check its creator. Only the amount and note can change, as specified in UC-4. The service preserves the parties, creator, date, and sequence number. For a saved amount S and current signed balance B from the payer's perspective, the editing limit is max(0, S - B). The original effect is removed before clamping to zero. This matters if a later expense has reversed the direction of the debt. Deletion also checks the creator against the saved record.
-
-```mermaid
-sequenceDiagram
-    actor Member
-    participant Form as SettlementFormActivity
-    participant Service as SettlementService
-    participant Group as GroupRepository
-    participant Balance as BalanceService
-    participant Tx as TransactionRepository
-    Member->>Form: Choose direction, member, amount, note
-    Form->>Service: createSettlement(record, callback)
-    Service->>Group: findById(groupId)
-    Group-->>Service: Group
-    Service->>Balance: getMaxAllowed via pair balance
-    Balance->>Tx: findByGroup(groupId)
-    Tx-->>Balance: Transactions
-    Balance-->>Service: Signed pair balance
-    alt Invalid amount or membership
-        Service-->>Form: ValidationException
-    else Valid settlement
-        Service->>Tx: nextSequenceNo(groupId)
-        Tx-->>Service: Sequence number
-        Service->>Tx: save(record with date and sequence)
-        Tx-->>Service: Saved record
-        Service-->>Form: Success
-        Form-->>Member: Return to group history
-    end
-```
-
-Figure 3. Revised settlement creation flow, showing asynchronous responses and membership validation.
-
-### 5.4 Expense locking is derived, not stored
-
-For expense E with payer P, a later settlement locks E when it connects P to a different participant who has a positive share. “Later” means a larger sequence number, regardless of the displayed date. Either settlement direction counts. A settlement between two participants who are not the payer does not lock the expense.
-
-The service recalculates this condition from current records. Deleting one settlement releases a lock only if no other later settlement still covers the expense. Both the detail screen and ExpenseService check the rule; hiding the Edit button is not the only protection.
-
-### 5.5 Splits, history, and summaries
-
-Equal splits assign remainder cents in participant order. Exact splits require the shares to add up to the amount. Percentage splits use decimal arithmetic and preserve zero-percent shares. Values within the existing 0.0001 percentage-point sum tolerance are normalized before rounding so the assigned cents still equal the expense, including for large amounts.
-
-HistoryFilter combines keyword, type, category, and member filters, with case-sensitive keyword matching. Sequence numbers determine both sort orders. MonthlySummaryCalculator totals expenses by their original creation month and excludes settlements. Editing an expense preserves that month.
-
-### 5.6 Storage and implementation helpers
-
-Firestore uses users/{uid}, groups/{groupId}, and groups/{groupId}/transactions/{id}. The transaction type selects Expense or Settlement when reading. The group document's seqCounter is incremented in a Firestore transaction. Group updates preserve this counter, and group deletion also removes its transaction documents.
-
-Callback, DateUtil, MoneyUtil, Extras, and EdgeToEdgeUtil make asynchronous responses, date formatting, money conversion, intent keys, and system-bar padding consistent across screens. These support the existing design rather than introducing another architectural layer.
+<!-- pagebreak -->
 
 ## 6 Requirements Change
 
-### 6.1 Password length
+### 6.1 FR-1.1: Password Length
 
-Project 2.1 FR-1.1 states that there are no password-length rules. Firebase Authentication enforces a minimum of six characters for email/password accounts. The implementation reports this as a password-field error. This is a requirement difference caused by the selected authentication provider. It does not change the architecture: AuthService remains responsible for registration. The minimum should be included in the customer-facing registration instructions.
+The original requirement has no password-length rule. The implemented Firebase email/password flow requires at least six characters and reports a weak password beside the password field. This is a difference caused by the chosen authentication provider. It does not change the architecture, because AuthService already owns registration. At the detailed-design level, registration must handle the provider's password failure and explain the minimum to the user.
 
-### 6.2 Percentage sum tolerance
+### 6.2 FR-2.4.3: Percentage Sum Tolerance
 
-FR-2.4.3 describes a total of exactly 100 percent. The team implementation accepts a sum within 0.0001 percentage points of 100. Accepted values are normalized and rounded to integer cents; they never change the expense total. This is a numerical-input tolerance, not a change to who participates or the supported split methods. It affects the percentage strategy and its validation tests, with no architectural change.
+The original requirement says percentages add up to exactly 100. The implementation accepts a sum within 0.0001 percentage points of 100 and normalizes the accepted values before assigning whole cents. The reason is to tolerate a small numerical difference without changing the expense total. This affects PercentageSplit and its validation tests, but does not require a new component or a change to the data model.
 
-### 6.3 Zero-share participants and locking
+### 6.3 FR-4.2: Zero-Share Participants and Locking
 
-FR-4.2 describes a participant relationship without explicitly excluding zero shares. The team README refines the lock rule to participants with a positive share. The implementation follows that refinement: a zero-share participant creates no debt to settle, so that pair alone does not lock the expense. The change is confined to SettlementService.isLocked and its tests.
+The original wording refers to an expense's participants without excluding zero shares. The team implementation refines the rule to positive shares: a participant assigned $0.00 creates no debt to the payer, so a settlement with that participant alone does not lock the expense. This changes the condition in SettlementService.isLocked and the corresponding tests. The locking policy and the dependency from ExpenseService to SettlementService remain the same.
 
-### 6.4 Scope retained and operational limits
+### 6.4 UC-2 and UC-4: Form Interaction Differences
 
-There are no additions to payment processing, currencies, receipt scanning, membership removal, group ownership transfer, or deleted-record history. Settlements still record payments made outside SplitSmart.
+The following differences describe the current screens rather than changes to which records may be saved:
 
-The validation report covers local Android and Firebase emulator tests. It does not certify the deployed Firebase rules, concurrent writes from multiple devices, or every supported Android version. In particular, the debt check and settlement write are separate backend operations, so simultaneous submissions can race. Enforcing that invariant across concurrent clients would require an atomic backend operation or a transactional ledger design. The existing development tools and the shared Firestore test-mode rules also need review before a public release; the integration tests do not modify those deployed rules.
+- UC-2 steps 5.2-5.4 describe disabling Save whenever inputs are invalid. The expense form instead shows split feedback while editing and rejects invalid input when Save is selected. Save is disabled while data is loading or a write is in progress. The service validation remains the final check. Matching the original button behavior would require the form to combine field and split validity before enabling Save; it would not change the service or storage design.
+- UC-2 step 8.1.2 places the original creation date in the expense edit form. The current application shows it on the transaction detail screen instead. It is still preserved and cannot be edited. Adding the same read-only date to ExpenseFormActivity would be a presentation-only change.
+- UC-4 step 1.1 says the settlement form does not open when there is no debt. The implementation opens the form and shows that there are no outstanding balances in the selected direction, with Save disabled. The member can switch direction on that screen. This changes the empty-state location, but leaves the balance and settlement rules unchanged.
+
+### 6.5 Requirements Retained
+
+All amounts remain in US dollars, settlements record payments made outside the app, and debts remain separate for each group and pair of members. Receipt scanning, multiple currencies, removing members, leaving groups, transferring ownership, and retaining deleted transactions remain outside the scope. The layered design still supports these boundaries; the implementation does not add external payment processing or USC-system integration.
