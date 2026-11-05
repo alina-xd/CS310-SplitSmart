@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner: Part B (expense form). -->
+<resources>
+    <string name="b_new_expense">Add expense</string>
+    <string name="b_edit_expense">Edit expense</string>
+    <string name="b_title">Title</string>
+    <string name="b_amount">Amount (USD)</string>
+    <string name="b_amount_hint">0.00</string>
+    <string name="b_category">Category</string>
+    <string name="b_payer">Paid by</string>
+    <string name="b_participants">Participants</string>
+    <string name="b_payer_always_included">The payer is always a participant.</string>
+    <string name="b_note">Note (optional)</string>
+    <string name="b_save">Save expense</string>
+    <string name="b_invalid_amount">Enter a valid amount with at most 2 decimals</string>
+    <string name="b_group_missing">This group no longer exists.</string>
+    <string name="b_expense_missing">This expense no longer exists.</string>
+    <string-array name="b_categories">
+        <item>Food</item><item>Housing</item><item>Transportation</item><item>Entertainment</item><item>Other</item>
+    </string-array>
+</resources>
