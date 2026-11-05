@@ -70,9 +70,9 @@ public class GroupService {
         loadOwnedGroup(groupId, requesterId, "add members", callback, saved ->
                 userRepo.findByEmail(cleanEmail, then(callback, user -> {
                     if (user == null) {
-                        callback.onFailure(new ValidationException("email", "No registered user with this email"));
+                        callback.onFailure(new ValidationException("email", "No SplitSmart account uses this email"));
                     } else if (saved.hasMember(user.getUid())) {
-                        callback.onFailure(new ValidationException("email", user.getName() + " is already a member"));
+                        callback.onFailure(new ValidationException("email", "This user is already in the group"));
                     } else {
                         saved.addMember(user.getUid());
                         groupRepo.save(saved, then(callback, unused -> callback.onSuccess(null)));

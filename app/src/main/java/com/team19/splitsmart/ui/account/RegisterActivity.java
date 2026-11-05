@@ -43,9 +43,15 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void onCreateAccountClicked() {
+        String name = editName.getText().toString();
+        String email = editEmail.getText().toString();
+        String uscId = editUscId.getText().toString();
+        String password = editPassword.getText().toString();
+        if (!checkAllFields(name, email, uscId, password)) {
+            return;
+        }
         buttonCreate.setEnabled(false);
-        authService.register(editName.getText().toString(), editEmail.getText().toString(),
-                editUscId.getText().toString(), editPassword.getText().toString(), new Callback<User>() {
+        authService.register(name, email, uscId, password, new Callback<User>() {
                     @Override
                     public void onSuccess(User user) {
                         Intent intent = new Intent(RegisterActivity.this, GroupListActivity.class);
@@ -63,6 +69,31 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    /**
+     * Marks every invalid field at once (UC-1 4.1.2) and keeps what was typed. AuthService checks
+     * the same rules again, plus the duplicate email and USC ID checks.
+     */
+    private boolean checkAllFields(String name, String email, String uscId, String password) {
+        boolean ok = true;
+        if (name.trim().isEmpty()) {
+            editName.setError("Enter your name");
+            ok = false;
+        }
+        if (!authService.isValidUscEmail(email)) {
+            editEmail.setError("Use your @usc.edu email");
+            ok = false;
+        }
+        if (!authService.isValidUscId(uscId)) {
+            editUscId.setError("USC ID must be exactly 10 digits");
+            ok = false;
+        }
+        if (password.isEmpty()) {
+            editPassword.setError("Enter a password");
+            ok = false;
+        }
+        return ok;
     }
 
     private void showFieldError(String field, String message) {
