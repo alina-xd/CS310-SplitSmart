@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Feature 1. Replace the contents freely. -->
+<!-- Owner: Part A. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -10,31 +10,41 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="My groups"
         android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonCreateGroup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="New group" />
+
+        <Button
+            android:id="@+id/buttonProfile"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Profile" />
+    </LinearLayout>
+
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Feature 1)" />
-
-    <Button
-        android:id="@+id/buttonCreateGroup"
+        android:id="@+id/textEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="New group" />
+        android:layout_marginTop="8dp" />
 
-    <Button
-        android:id="@+id/buttonProfile"
+    <ListView
+        android:id="@+id/listGroups"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Profile" />
-
-    <Button
-        android:id="@+id/buttonOpenGroupPlaceholder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Open a group (placeholder)" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>

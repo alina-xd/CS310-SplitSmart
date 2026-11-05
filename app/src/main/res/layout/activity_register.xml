@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Feature 1. Replace the contents freely. -->
+<!-- Owner: Part A. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -10,19 +10,47 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="Create account"
         android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/editName"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Feature 1)" />
+        android:autofillHints="none"
+        android:hint="Name"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/editEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="none"
+        android:hint="USC email (@usc.edu)"
+        android:inputType="textEmailAddress" />
+
+    <EditText
+        android:id="@+id/editUscId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="none"
+        android:hint="USC ID (10 digits)"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/editPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="none"
+        android:hint="Password (6+ characters)"
+        android:inputType="textPassword" />
 
     <Button
         android:id="@+id/buttonCreateAccount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Create account" />
 
 </LinearLayout>
