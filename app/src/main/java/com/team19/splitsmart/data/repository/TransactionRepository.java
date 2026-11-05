@@ -121,13 +121,23 @@ public class TransactionRepository {
 
     private static Transaction fromSnapshot(DocumentSnapshot doc) {
         String type = doc.getString(FirestorePaths.TYPE_FIELD);
+        Transaction t;
         if (Transaction.TYPE_EXPENSE.equals(type)) {
-            return doc.toObject(Expense.class);
+            t = doc.toObject(Expense.class);
+        } else if (Transaction.TYPE_SETTLEMENT.equals(type)) {
+            t = doc.toObject(Settlement.class);
+        } else {
+            Log.w(TAG, "Unknown transaction type in " + doc.getId());
+            return null;
         }
-        if (Transaction.TYPE_SETTLEMENT.equals(type)) {
-            return doc.toObject(Settlement.class);
+        // Records added by hand in the Firebase console (e.g. past-month demo data) often lack
+        // these fields; the document's own id and location are always right.
+        if (t != null && t.getId() == null) {
+            t.setId(doc.getId());
         }
-        Log.w(TAG, "Unknown transaction type in " + doc.getId());
-        return null;
+        if (t != null && t.getGroupId() == null) {
+            t.setGroupId(doc.getReference().getParent().getParent().getId());
+        }
+        return t;
     }
 }

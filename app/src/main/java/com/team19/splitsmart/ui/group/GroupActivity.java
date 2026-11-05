@@ -37,6 +37,10 @@ public class GroupActivity extends AppCompatActivity {
         ((android.view.ViewGroup) overview.getParent()).removeView(overview);
         android.widget.ListView history = findViewById(R.id.listHistory);
         history.addHeaderView(overview, null, false);
+        // Keep the "Transaction history" heading below the overview, right above the filters.
+        android.view.View heading = findViewById(R.id.textHistoryHeading);
+        ((android.view.ViewGroup) heading.getParent()).removeView(heading);
+        history.addHeaderView(heading, null, false);
         membersSection = new GroupMembersSection(this, groupId);
         historySection = new GroupHistorySection(this, groupId);
         findViewById(R.id.buttonAddExpense).setOnClickListener(v -> open(ExpenseFormActivity.class));

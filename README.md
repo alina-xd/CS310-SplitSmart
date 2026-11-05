@@ -28,48 +28,38 @@ SplitSmart lets USC students share expenses in groups and see who owes whom.
 1. Clone the repo and open the folder in Android Studio.
 2. `app/google-services.json` is committed; it connects the app to Firebase project `splitsmartgroup19`.
 3. **File → Sync Project with Gradle Files**, then run on an emulator (API 24 or newer).
-4. On the Log in screen, tap **Developer tools** → **Seed / reset test data** → **Act as Alice** → **Open Trip group**.
+4. Register an account (or log in), create a group, and add a second account as a member.
 5. Find your part in section 6 and start.
 
-**Firestore rules.** The database was created in test mode, which allows all reads and writes only until about 3 December 2026. Before then, someone must open Firebase console → Firestore → Rules and change the date in `request.time < timestamp.date(...)` to `2027, 1, 15`. Don't require sign-in in the rules while Developer tools are in use, because the test users aren't signed in.
+**Firestore rules.** The database was created in test mode, which allows all reads and writes only until about 3 December 2026. Before then, someone must open Firebase console → Firestore → Rules and change the date in `request.time < timestamp.date(...)` to `2027, 1, 15`. Only extend the date; don't require sign-in in the rules, because registration checks for duplicate emails and USC IDs before the user is signed in.
 
 ## 3. Working without waiting for each other
 
-**Developer tools** (button on the Log in screen) let every part work and test from day one:
-
-- **Seed / reset test data** writes 4 users, 3 groups and sample transactions with fixed IDs (`dev-...`). Run it again any time to reset them.
-- **Act as Alice / Bob / Carol / David** sets the current user. Until real login exists, `AuthService.getCurrentUserId()` returns this user.
-- **Open Trip / Apartment / Disposable group** jumps straight to a group.
+**Developer tools** (test-data seeding and "Act as" users) were used during development and have been removed. Test with real accounts.
 
 **Integration status.** Parts A-E are implemented. Settlement validation and expense locking are active. See [integrated validation](docs/integration-validation.md), [test commands](tests/README.md), and [implementation design changes](docs/implementation.md). The per-part instructions below remain the implementation checklist.
 
 **Already implemented, use freely:** every repository method, `GroupService.getGroup`, `GroupService.getMembers`, `HistoryService.getTransaction`, `HistoryService.listen`, `HistoryService.getMonthlySummary` (calls Part C's calculator), `ExpenseService.previewShares` (calls Part C's strategies), `MoneyUtil`, `DateUtil`.
 
-### Test data
+### Example data (good for the demo)
 
-| Group | Owner | Members |
+Register Alice, Bob, Carol and David, create a group "Trip" owned by Alice with all four as members, then add these **in this order**:
+
+| # | Transaction | Shares |
 |---|---|---|
-| Trip (dev) `dev-group-trip` | Alice | Alice, Bob, Carol, David |
-| Apartment (dev) `dev-group-home` | Bob | Bob, Alice, Carol |
-| Disposable (dev) `dev-group-disposable` | Alice | Alice, Bob |
+| 1 | Dinner $30.00, Food, Alice paid, equal, note "Thai place" (Alice records it) | Alice $10.00, Bob $10.00, Carol $10.00 |
+| 2 | Taxi $20.00, Transportation, Bob paid, exact (Bob records it) | Bob $15.00, Alice $5.00 |
+| 3 | Movie $10.00, Entertainment, Carol paid, equal, note "IMAX" (Carol records it) | Carol $3.34, Alice $3.33, Bob $3.33 (the payer gets the extra cent) |
+| 4 | Settlement Bob → Alice $3.00, note "Venmo" (Bob records "I paid someone") | |
 
-Trip group transactions, in order (`sequenceNo` 1–4):
+The correct results:
 
-| # | Date | Transaction | Shares |
-|---|---|---|---|
-| 1 | 2026-10-12 | Dinner $30.00, Food, Alice paid, equal, note "Thai place" | Alice $10.00, Bob $10.00, Carol $10.00 |
-| 2 | 2026-10-20 | Taxi $20.00, Transportation, Bob paid, exact | Alice $5.00, Bob $15.00 |
-| 3 | 2026-11-02 | Movie $10.00, Entertainment, Carol paid, equal, note "IMAX" | Alice $3.34, Bob $3.33, Carol $3.33 |
-| 4 | 2026-11-02 | Settlement Bob → Alice $3.00, note "Venmo" | |
-
-The correct results, for checking your work:
-
-- **Alice:** Bob owes her $2.00, Carol owes her $6.66. To receive $8.66, to pay $0.00.
-- **Bob:** owes Alice $2.00, owes Carol $3.33.
-- **Carol:** owes Alice $6.66, Bob owes her $3.33. **David:** no balances.
+- **Alice:** Bob owes her $2.00, Carol owes her $6.67. To receive $8.67, to pay $0.00.
+- **Bob:** owes Alice $2.00, owes Carol $3.33. To pay $5.33.
+- **Carol:** owes Alice $6.67, Bob owes her $3.33. To receive $3.33, to pay $6.67. **David:** no balances.
 - **Locks:** Dinner and Taxi are locked by settlement 4 (between Bob and Alice). Movie is not locked.
-- **Monthly summary:** October 2026 has 2 expenses, $50.00 (Food $30.00, Transportation $20.00). November 2026 has 1 expense, $10.00 (Entertainment); the settlement isn't counted.
-- **Other groups:** Apartment has Rent $1,500.00 (Bob paid, equal among Alice, Bob, Carol), so Alice owes Bob $500.00 there. That must not change Trip balances. Disposable has one expense, for testing group deletion.
+- **Monthly summary:** all four are dated today. To show a second month, change Dinner's and Taxi's `createdDate` to last month in the Firebase console; that month then shows 2 expenses, $50.00 (Food $30.00, Transportation $20.00), and the settlement is never counted.
+- **Group boundaries:** a second group where Bob pays $1,500.00 rent split equally with Alice and Carol must not change Trip balances.
 
 ## 4. How the code is organized
 
@@ -91,7 +81,6 @@ app/src/main/java/com/team19/splitsmart/
   data/model/       User, Group, Transaction (abstract), Expense, Settlement, Category, SplitMethod
   data/repository/  UserRepository, GroupRepository, TransactionRepository, TransactionListener, FirestorePaths
   util/             Callback, MoneyUtil, DateUtil
-  dev/              Developer tools (delete before the demo)
 ```
 
 Each screen already exists as a placeholder with buttons that navigate. Replace the placeholder contents of the files you own.
@@ -147,7 +136,7 @@ An expense E (payer P) is locked if some settlement S has `S.sequenceNo > E.sequ
 
 Each file has exactly one owner. **Only edit files you own.** If you need a change in someone else's file, ask them.
 
-**Shared files, which nobody edits without telling the whole team first:** `data/model/*`, `data/repository/*`, `util/*`, `ui/Extras`, `ui/EdgeToEdgeUtil`, `GroupActivity` + `activity_group.xml` (it only hosts the sections), `dev/*`, `AndroidManifest.xml`, the Gradle files and `strings.xml`. Put your strings in your own file, for example `res/values/strings_part_a.xml`; Android merges them. RecyclerView is already included through the Material library.
+**Shared files, which nobody edits without telling the whole team first:** `data/model/*`, `data/repository/*`, `util/*`, `ui/Extras`, `ui/EdgeToEdgeUtil`, `GroupActivity` + `activity_group.xml` (it only hosts the sections), `AndroidManifest.xml`, the Gradle files and `strings.xml`. Put your strings in your own file, for example `res/values/strings_part_a.xml`; Android merges them. RecyclerView is already included through the Material library.
 
 Each part's work is split into **implement** (service code), **screens** (UI), and **done when** (checklist items you can demo).
 
@@ -167,7 +156,7 @@ Each part's work is split into **implement** (service code), **screens** (UI), a
   5. `userRepo.save(new User(uid, name, email, uscId))`.
 - `login(email, password, cb)`: `auth.signInWithEmailAndPassword(email in lower case, password)`, then `userRepo.findById(uid)`.
 - `logout()`: `auth.signOut()`. `getCurrentUser(cb)`: `userRepo.findById(getCurrentUserId())`. `updateName(newName, cb)`: reject blank, load the user, `setName`, save.
-- Add `isSignedIn()` (`auth.getCurrentUser() != null`). The login screen uses it, because `getCurrentUserId()` also returns the Developer tools user.
+- Add `isSignedIn()` (`auth.getCurrentUser() != null`). The login screen uses it to skip straight to the group list.
 
 **Implement, in `GroupService`:**
 - `createGroup`: blank name → `ValidationException("name", ...)`, then `groupRepo.save(new Group(name, description, ownerId))`. The description may be empty.
@@ -238,7 +227,7 @@ Each part's work is split into **implement** (service code), **screens** (UI), a
 - [ ] All 5 categories are available, a new expense defaults to Other, and each expense has exactly one category.
 - [ ] Amounts of 0, negative, or with 3 decimals can't be saved; a valid amount can.
 - [ ] Payer and participants come only from the group, fewer than 2 participants is rejected, and the payer can't be unchecked.
-- [ ] The creator edits the payer, participants and amount of an unlocked expense, and the date stays the same. Another member can view it but can't edit or delete it (with Part E's detail screen). The Movie expense in the test data is unlocked; Dinner is locked.
+- [ ] The creator edits the payer, participants and amount of an unlocked expense, and the date stays the same. Another member can view it but can't edit or delete it (with Part E's detail screen). In the example data (section 3), Movie is unlocked and Dinner is locked.
 - [ ] Data is still there after reopening the app, and another member sees changes after reopening the screen.
 
 ---
@@ -367,11 +356,7 @@ These are fixed, so parts can be written in parallel. Don't change them without 
 ## 8. Before the demo (whole team, last few days)
 
 1. Merge every part into `main` and run through the full checklist once, with two people switching users.
-2. Remove the Developer tools:
-   - delete the `dev` package
-   - delete the button and its line in `LoginActivity`
-   - delete the `DevActivity` entry in `AndroidManifest.xml`
-   - in `AuthService.getCurrentUserId()`, return `null` instead of `DevSession.getUserId()` and remove the import
+2. ~~Remove the Developer tools~~ (done).
 3. Register 4 real accounts (for example Alice, Bob, Carol, David) and create in the app:
    - two groups with different owners and members, plus a disposable group to delete
    - varied expenses and settlements with different categories, members, titles, notes and dates
@@ -388,7 +373,7 @@ These are fixed, so parts can be written in parallel. Don't change them without 
 **Before you merge, every time:**
 1. Run the unit tests: right-click `app/src/test/java` → **Run 'Tests in ...'**. All must pass.
 2. Walk through your part's "Done when" list on the emulator, including empty boxes, wrong input and the Back button.
-3. Run the random-tap crash test from Android Studio's Terminal tab, with the app installed and the emulator open. Act as a test user first, because it taps buttons at random and may add or delete test data:
+3. Run the random-tap crash test from Android Studio's Terminal tab, with the app installed and the emulator open. Log in with a test account first, because it taps buttons at random and may add or delete data:
    ```
    ~/Library/Android/sdk/platform-tools/adb shell monkey -p com.team19.splitsmart --throttle 300 -v 500
    ```

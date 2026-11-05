@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.team19.splitsmart.R;
 import com.team19.splitsmart.data.model.User;
-import com.team19.splitsmart.dev.DevActivity;
 import com.team19.splitsmart.service.AuthService;
 import com.team19.splitsmart.ui.EdgeToEdgeUtil;
 import com.team19.splitsmart.ui.group.GroupListActivity;
@@ -44,8 +43,6 @@ public class LoginActivity extends AppCompatActivity {
         buttonLogin = findViewById(R.id.buttonLogin);
         buttonLogin.setOnClickListener(v -> onLoginClicked());
         findViewById(R.id.buttonSignUp).setOnClickListener(v -> startActivity(new Intent(this, RegisterActivity.class)));
-        // Development only: remove this line, the button and the dev package before the demo.
-        findViewById(R.id.buttonDevTools).setOnClickListener(v -> startActivity(new Intent(this, DevActivity.class)));
     }
 
     private void onLoginClicked() {
