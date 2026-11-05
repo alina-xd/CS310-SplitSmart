@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Feature 1. Replace the contents freely. -->
+<!-- Owner: Part A. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -10,20 +10,35 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="Profile"
         android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/editName"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Feature 1)" />
+        android:autofillHints="none"
+        android:hint="Name"
+        android:inputType="textPersonName" />
 
     <Button
         android:id="@+id/buttonSaveName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Save name" />
+
+    <TextView
+        android:id="@+id/textEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/textUscId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/buttonLogOut"

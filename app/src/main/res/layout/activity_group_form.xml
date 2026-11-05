@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Feature 1. Replace the contents freely. -->
+<!-- Owner: Part A. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -8,21 +8,34 @@
     android:padding="16dp">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Group details"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-
-    <TextView
+        android:id="@+id/textFormTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Feature 1)" />
+        android:text="New group"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
+
+    <EditText
+        android:id="@+id/editGroupName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="none"
+        android:hint="Group name"
+        android:inputType="textCapSentences" />
+
+    <EditText
+        android:id="@+id/editGroupDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="none"
+        android:hint="Description (optional)"
+        android:inputType="textCapSentences|textMultiLine" />
 
     <Button
         android:id="@+id/buttonSave"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Save" />
 
 </LinearLayout>
