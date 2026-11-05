@@ -1,5 +1,6 @@
 package com.team19.splitsmart.ui.group;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -73,6 +74,9 @@ public class GroupFormActivity extends AppCompatActivity {
             groupService.createGroup(name, description, uid, new Callback<Group>() {
                 @Override
                 public void onSuccess(Group created) {
+                    Intent intent = new Intent(GroupFormActivity.this, GroupActivity.class);
+                    intent.putExtra(Extras.GROUP_ID, created.getGroupId());
+                    startActivity(intent);
                     finish();
                 }
 

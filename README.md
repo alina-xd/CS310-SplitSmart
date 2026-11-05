@@ -401,3 +401,4 @@ Add to this list whenever you change something from the 2.2 design.
 10. **Keyword search moved** from `Transaction` into `HistoryFilter`, and monthly totals into `MonthlySummaryCalculator`, so the logic is in one place and testable without Firebase.
 11. **`Expense.splitInputs`** stores what the user typed (dollars or percents), so the form can be refilled when editing.
 12. **`HistoryService.getTransaction`** was added so the detail and edit screens can load one transaction.
+13. **Passwords need at least 6 characters.** Firebase Authentication requires this, so FR-1.1 ("no rules on password length") can't be met exactly. Report it under "Requirements Change".

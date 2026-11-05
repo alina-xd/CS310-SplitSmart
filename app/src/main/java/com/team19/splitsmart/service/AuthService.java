@@ -15,6 +15,9 @@ import java.util.function.Consumer;
 /** C5 Account Service. Owner: Part A. */
 public class AuthService {
 
+    /** UC-1 4.2.2. */
+    static final String ACCOUNT_EXISTS = "An account with this USC email or USC ID already exists.";
+
     private final UserRepository userRepo;
     private final FirebaseAuth auth;
 
@@ -56,12 +59,12 @@ public class AuthService {
         } else {
             userRepo.findByEmail(cleanEmail, then(callback, byEmail -> {
                 if (byEmail != null) {
-                    callback.onFailure(new ValidationException("email", "An account with this email already exists"));
+                    callback.onFailure(new ValidationException("email", ACCOUNT_EXISTS));
                     return;
                 }
                 userRepo.findByUscId(cleanId, then(callback, byId -> {
                     if (byId != null) {
-                        callback.onFailure(new ValidationException("uscId", "An account with this USC ID already exists"));
+                        callback.onFailure(new ValidationException("uscId", ACCOUNT_EXISTS));
                         return;
                     }
                     createAccount(cleanName, cleanEmail, cleanId, password, callback);
@@ -80,7 +83,7 @@ public class AuthService {
                     if (e instanceof FirebaseAuthWeakPasswordException) {
                         callback.onFailure(new ValidationException("password", "Password must be at least 6 characters"));
                     } else if (e instanceof FirebaseAuthUserCollisionException) {
-                        callback.onFailure(new ValidationException("email", "An account with this email already exists"));
+                        callback.onFailure(new ValidationException("email", ACCOUNT_EXISTS));
                     } else {
                         callback.onFailure(e);
                     }
