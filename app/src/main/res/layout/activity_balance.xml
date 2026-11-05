@@ -1,22 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Feature 4. Replace the contents freely. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Balances"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Feature 4)" />
-
-</LinearLayout>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:padding="20dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/d_balances" android:textAppearance="?attr/textAppearanceHeadlineSmall" />
+        <TextView android:id="@+id/textToReceive" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:textAppearance="?attr/textAppearanceTitleLarge" />
+        <TextView android:id="@+id/textToPay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textAppearance="?attr/textAppearanceTitleLarge" />
+        <TextView android:id="@+id/textBalanceStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:accessibilityLiveRegion="polite" android:text="@string/d_loading" />
+        <Button android:id="@+id/buttonBalanceRetry" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/d_retry" android:visibility="gone" />
+        <LinearLayout android:id="@+id/balanceRows" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>

@@ -47,6 +47,10 @@ public class ExpenseService {
 
     /** Validates, then saves with the next sequenceNo and today's date (FR-2.1). */
     public void createExpense(Expense expense, Callback<Void> callback) {
+        if (expense.getId() != null) {
+            callback.onFailure(new ValidationException("permission", "Use Edit to change an existing expense"));
+            return;
+        }
         withGroup(expense.getGroupId(), callback, group -> {
             try {
                 validate(expense, group);
@@ -110,6 +114,9 @@ public class ExpenseService {
         if (expense.getAmountCents() <= 0) {
             throw new ValidationException("amount", "The amount must be more than $0.00");
         }
+        if (!group.hasMember(expense.getCreatorId())) {
+            throw new ValidationException("permission", "The creator must be a member of this group");
+        }
         String payerId = expense.getPayerId();
         if (payerId == null || payerId.isEmpty()) {
             throw new ValidationException("payer", "Choose who paid");
@@ -129,7 +136,14 @@ public class ExpenseService {
         if (!shares.containsKey(payerId)) {
             throw new ValidationException("participants", "The payer must be one of the participants");
         }
-        if (!expense.sharesAddUp()) {
+        long total = 0;
+        for (Long share : shares.values()) {
+            if (share == null || share < 0 || share > expense.getAmountCents() - total) {
+                throw new ValidationException("split", "Shares must be nonnegative and add up to the expense");
+            }
+            total += share;
+        }
+        if (total != expense.getAmountCents()) {
             throw new ValidationException("split", "The shares must add up to the full amount");
         }
         if (expense.getCategory() == null) {

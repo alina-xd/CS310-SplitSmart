@@ -41,7 +41,7 @@ SplitSmart lets USC students share expenses in groups and see who owes whom.
 - **Act as Alice / Bob / Carol / David** sets the current user. Until real login exists, `AuthService.getCurrentUserId()` returns this user.
 - **Open Trip / Apartment / Disposable group** jumps straight to a group.
 
-**Unfinished methods fail safely.** Every unfinished service method that takes a `Callback` calls `callback.onFailure(...)` with "Not implemented yet (Part X)" instead of crashing. If you call another part's unfinished method, you just get an error message, so handle `onFailure` everywhere (show a Toast). `SettlementService.isLocked` answers "not locked" until Part D finishes it.
+**Integration status.** Parts A-E are implemented. Settlement validation and expense locking are active. See [integrated validation](docs/integration-validation.md), [test commands](tests/README.md), and [implementation design changes](docs/implementation.md). The per-part instructions below remain the implementation checklist.
 
 **Already implemented, use freely:** every repository method, `GroupService.getGroup`, `GroupService.getMembers`, `HistoryService.getTransaction`, `HistoryService.listen`, `HistoryService.getMonthlySummary` (calls Part C's calculator), `ExpenseService.previewShares` (calls Part C's strategies), `MoneyUtil`, `DateUtil`.
 

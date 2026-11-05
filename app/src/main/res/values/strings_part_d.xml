@@ -1,0 +1,26 @@
+<resources>
+    <string name="d_balances">Balances</string>
+    <string name="d_receive">To receive: %1$s</string>
+    <string name="d_pay">To pay: %1$s</string>
+    <string name="d_they_owe">%1$s owes you %2$s</string>
+    <string name="d_you_owe">You owe %1$s %2$s</string>
+    <string name="d_settled">%1$s: settled · %2$s</string>
+    <string name="d_loading">Loading…</string>
+    <string name="d_retry">Retry</string>
+    <string name="d_record">Record settlement</string>
+    <string name="d_edit">Edit settlement</string>
+    <string name="d_i_paid">I paid someone</string>
+    <string name="d_paid_me">Someone paid me</string>
+    <string name="d_member">Other member</string>
+    <string name="d_member_amount">%1$s · %2$s owed</string>
+    <string name="d_maximum">Maximum: %1$s</string>
+    <string name="d_no_debts">No outstanding balances in this direction.</string>
+    <string name="d_amount">Amount (USD)</string>
+    <string name="d_note">Note (optional)</string>
+    <string name="d_save">Save settlement</string>
+    <string name="d_saving">Saving…</string>
+    <string name="d_date">Created: %1$s</string>
+    <string name="d_edit_hint">You can change the amount and note. The people and original date stay the same.</string>
+    <string name="d_bad_amount">Enter a valid amount with at most 2 decimal places</string>
+    <string name="d_no_members">No other members in this group yet.</string>
+</resources>

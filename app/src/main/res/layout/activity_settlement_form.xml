@@ -1,28 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder screen. Owner: Feature 4. Replace the contents freely. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Settlement"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Placeholder screen (Feature 4)" />
-
-    <Button
-        android:id="@+id/buttonSave"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Save settlement" />
-
-</LinearLayout>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:padding="20dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+        <TextView android:id="@+id/textSettlementHeading" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/d_record" android:textAppearance="?attr/textAppearanceHeadlineSmall" />
+        <TextView android:id="@+id/textSettlementDate" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:visibility="gone" />
+        <RadioGroup android:id="@+id/settlementDirection" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:checkedButton="@id/radioIPaid">
+            <RadioButton android:id="@+id/radioIPaid" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/d_i_paid" />
+            <RadioButton android:id="@+id/radioPaidMe" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/d_paid_me" />
+        </RadioGroup>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@id/spinnerSettlementMember" android:text="@string/d_member" android:layout_marginTop="12dp" />
+        <Spinner android:id="@+id/spinnerSettlementMember" android:layout_width="match_parent" android:layout_height="48dp" />
+        <TextView android:id="@+id/textSettlementMaximum" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" />
+        <EditText android:id="@+id/inputSettlementAmount" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:hint="@string/d_amount" android:inputType="numberDecimal|numberSigned" android:autofillHints="" android:selectAllOnFocus="true" />
+        <EditText android:id="@+id/inputSettlementNote" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="64dp" android:hint="@string/d_note" android:inputType="textCapSentences|textMultiLine" android:autofillHints="" android:gravity="top|start" />
+        <TextView android:id="@+id/textSettlementStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:accessibilityLiveRegion="polite" android:text="@string/d_loading" />
+        <Button android:id="@+id/buttonSettlementRetry" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/d_retry" android:visibility="gone" />
+        <Button android:id="@+id/buttonSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/d_save" android:layout_marginTop="16dp" android:enabled="false" />
+    </LinearLayout>
+</ScrollView>

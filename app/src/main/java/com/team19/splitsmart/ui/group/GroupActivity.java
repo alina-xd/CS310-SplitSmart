@@ -32,6 +32,11 @@ public class GroupActivity extends AppCompatActivity {
         setContentView(R.layout.activity_group);
         EdgeToEdgeUtil.applySystemBarPadding(findViewById(R.id.main));
         groupId = getIntent().getStringExtra(Extras.GROUP_ID);
+        // Put the overview in the list header so owner controls cannot squeeze history off-screen.
+        android.view.View overview = findViewById(R.id.groupOverview);
+        ((android.view.ViewGroup) overview.getParent()).removeView(overview);
+        android.widget.ListView history = findViewById(R.id.listHistory);
+        history.addHeaderView(overview, null, false);
         membersSection = new GroupMembersSection(this, groupId);
         historySection = new GroupHistorySection(this, groupId);
         findViewById(R.id.buttonAddExpense).setOnClickListener(v -> open(ExpenseFormActivity.class));

@@ -26,6 +26,7 @@ public class PercentageSplit implements SplitStrategy {
             throw new IllegalArgumentException("The amount can't be negative");
         }
         double percentSum = 0;
+        BigDecimal exactPercentSum = BigDecimal.ZERO;
         for (Double percent : inputs.values()) {
             if (percent == null || percent.isNaN() || percent.isInfinite()) {
                 throw new IllegalArgumentException("Enter a percentage for every participant");
@@ -34,6 +35,7 @@ public class PercentageSplit implements SplitStrategy {
                 throw new IllegalArgumentException("Percentages can't be negative");
             }
             percentSum += percent;
+            exactPercentSum = exactPercentSum.add(BigDecimal.valueOf(percent));
         }
         if (Math.abs(percentSum - 100) > TOLERANCE) {
             throw new IllegalArgumentException("Percentages add up to "
@@ -48,7 +50,8 @@ public class PercentageSplit implements SplitStrategy {
         for (Map.Entry<String, Double> entry : inputs.entrySet()) {
             // BigDecimal avoids double errors like 0.29 * 100 = 28.999...
             long cents = total.multiply(BigDecimal.valueOf(entry.getValue()))
-                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.FLOOR)
+                    // Normalize the accepted tolerance so even large totals conserve every cent.
+                    .divide(exactPercentSum, 0, RoundingMode.FLOOR)
                     .longValueExact();
             shares.put(entry.getKey(), cents);
             assigned += cents;

@@ -1,3 +1,5 @@
+> Integration update (2026-11-04): the earlier isolated checks below are historical. Parts A-E now build together without stubs; see [integrated validation](integration-validation.md).
+
 # Part E: history and transaction details
 
 Implemented against `main` commit `a2381d4`:
