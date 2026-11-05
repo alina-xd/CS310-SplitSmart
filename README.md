@@ -385,6 +385,15 @@ These are fixed, so parts can be written in parallel. Don't change them without 
 - Pull `main` into your branch often. Open a pull request when a "Done when" item works, and have a teammate try it before merging.
 - Don't commit `local.properties`, `build/` or `.idea/` (they're in `.gitignore`).
 
+**Before you merge, every time:**
+1. Run the unit tests: right-click `app/src/test/java` → **Run 'Tests in ...'**. All must pass.
+2. Walk through your part's "Done when" list on the emulator, including empty boxes, wrong input and the Back button.
+3. Run the random-tap crash test from Android Studio's Terminal tab, with the app installed and the emulator open. Act as a test user first, because it taps buttons at random and may add or delete test data:
+   ```
+   ~/Library/Android/sdk/platform-tools/adb shell monkey -p com.team19.splitsmart --throttle 300 -v 500
+   ```
+   It must end with "Monkey finished". If it says "CRASH", open the **Logcat** tab, filter by "FATAL EXCEPTION", and fix the line it points to.
+
 ## 10. Design changes from 2.2 (for the implementation document)
 
 Add to this list whenever you change something from the 2.2 design.

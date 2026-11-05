@@ -164,8 +164,13 @@ public class TransactionDetailActivity extends AppCompatActivity {
             text.append('\n').append(getString(R.string.e_participants)).append('\n');
             if (expense.getShares() != null) {
                 for (Map.Entry<String, Long> share : expense.getShares().entrySet()) {
-                    text.append(getString(R.string.e_detail_field, memberName(share.getKey()),
-                            MoneyUtil.format(share.getValue() == null ? 0 : share.getValue()))).append('\n');
+                    long cents = share.getValue() == null ? 0 : share.getValue();
+                    String uid = share.getKey();
+                    // Say who owes whom: everyone except the payer owes the payer their share.
+                    int line = uid.equals(expense.getPayerId()) ? R.string.e_share_payer
+                            : cents > 0 ? R.string.e_share_owes : R.string.e_detail_field;
+                    text.append(getString(line, memberName(uid), MoneyUtil.format(cents),
+                            memberName(expense.getPayerId()))).append('\n');
                 }
             }
             text.append('\n');

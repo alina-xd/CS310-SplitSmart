@@ -20,6 +20,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.team19.splitsmart.R;
 import com.team19.splitsmart.data.model.Category;
 import com.team19.splitsmart.data.model.Expense;
+import com.team19.splitsmart.data.model.Settlement;
 import com.team19.splitsmart.data.model.Group;
 import com.team19.splitsmart.data.model.Transaction;
 import com.team19.splitsmart.data.model.User;
@@ -86,7 +87,8 @@ public class GroupHistorySection implements TransactionListener {
                         .inflate(R.layout.row_history_transaction, parent, false) : convertView;
                 Transaction t = getItem(position);
                 String title = t instanceof Expense ? ((Expense) t).getTitle()
-                        : activity.getString(R.string.e_settlement);
+                        : activity.getString(R.string.e_settlement_direction,
+                                memberName(((Settlement) t).getPayerId()), memberName(((Settlement) t).getRecipientId()));
                 ((TextView) row.findViewById(R.id.textHistoryTitle)).setText(activity.getString(
                         R.string.e_row_title, activity.getString(t.isExpense()
                                 ? R.string.e_expense : R.string.e_settlement), title));
@@ -224,7 +226,7 @@ public class GroupHistorySection implements TransactionListener {
             if (!loaded) {
                 status.setText(R.string.e_loading_history);
             } else if (adapter.isEmpty()) {
-                status.setText(R.string.e_no_matches);
+                status.setText(latest.isEmpty() ? R.string.e_no_transactions : R.string.e_no_matches);
             } else {
                 status.setText(activity.getResources().getQuantityString(
                         R.plurals.e_transaction_count, adapter.getCount(), adapter.getCount()));

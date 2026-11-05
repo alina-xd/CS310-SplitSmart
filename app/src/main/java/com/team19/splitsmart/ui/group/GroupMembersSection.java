@@ -112,9 +112,12 @@ public class GroupMembersSection {
 
     private void onAddMemberClicked() {
         String email = editMemberEmail.getText().toString();
+        View addButton = activity.findViewById(R.id.buttonAddMember);
+        addButton.setEnabled(false); // a second tap would report "already in the group"
         groupService.addMember(groupId, email, authService.getCurrentUserId(), new Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
+                addButton.setEnabled(true);
                 editMemberEmail.setText("");
                 Toast.makeText(activity, "Member added", Toast.LENGTH_SHORT).show();
                 refresh();
@@ -122,6 +125,7 @@ public class GroupMembersSection {
 
             @Override
             public void onFailure(Exception e) {
+                addButton.setEnabled(true);
                 if (e instanceof ValidationException && "email".equals(((ValidationException) e).getField())) {
                     editMemberEmail.setError(e.getMessage());
                 } else {

@@ -248,7 +248,9 @@ public class ExpenseSplitSection {
             try {
                 Map<String, Double> inputs = new LinkedHashMap<>();
                 for (String uid : participantIds) {
-                    inputs.put(uid, method == SplitMethod.EQUAL ? 0.0 : parseInput(uid));
+                    // Double.valueOf keeps both branches boxed; a bare 0.0 would unbox an empty
+                    // box (null) and crash instead of showing "Enter an amount for every participant".
+                    inputs.put(uid, method == SplitMethod.EQUAL ? Double.valueOf(0.0) : parseInput(uid));
                 }
                 lastShares = expenseService.previewShares(totalCents, method, inputs);
             } catch (IllegalArgumentException e) {

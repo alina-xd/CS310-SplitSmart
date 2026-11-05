@@ -2,6 +2,7 @@ package com.team19.splitsmart.ui.group;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,7 @@ public class GroupFormActivity extends AppCompatActivity {
     private AuthService authService;
     private EditText editName;
     private EditText editDescription;
+    private View buttonSave;
     private String groupId; // null when creating a new group
     private Group group;    // the loaded group when editing
 
@@ -39,7 +41,8 @@ public class GroupFormActivity extends AppCompatActivity {
         editName = findViewById(R.id.editGroupName);
         editDescription = findViewById(R.id.editGroupDescription);
         groupId = getIntent().getStringExtra(Extras.GROUP_ID);
-        findViewById(R.id.buttonSave).setOnClickListener(v -> onSaveClicked());
+        buttonSave = findViewById(R.id.buttonSave);
+        buttonSave.setOnClickListener(v -> onSaveClicked());
         if (groupId != null) {
             ((TextView) findViewById(R.id.textFormTitle)).setText("Edit group");
             loadGroup();
@@ -70,6 +73,7 @@ public class GroupFormActivity extends AppCompatActivity {
         String name = editName.getText().toString();
         String description = editDescription.getText().toString();
         String uid = authService.getCurrentUserId();
+        buttonSave.setEnabled(false); // a second tap would save twice
         if (groupId == null) {
             groupService.createGroup(name, description, uid, new Callback<Group>() {
                 @Override
@@ -85,7 +89,9 @@ public class GroupFormActivity extends AppCompatActivity {
                     showError(e);
                 }
             });
-        } else if (group != null) {
+        } else if (group == null) {
+            buttonSave.setEnabled(true); // still loading
+        } else {
             group.setName(name);
             group.setDescription(description);
             groupService.updateGroup(group, uid, new Callback<Void>() {
@@ -103,6 +109,7 @@ public class GroupFormActivity extends AppCompatActivity {
     }
 
     private void showError(Exception e) {
+        buttonSave.setEnabled(true);
         if (e instanceof ValidationException && "name".equals(((ValidationException) e).getField())) {
             editName.setError(e.getMessage());
         } else {

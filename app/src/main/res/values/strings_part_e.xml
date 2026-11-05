@@ -13,6 +13,10 @@
     <string name="e_row_title">%1$s · %2$s</string>
     <string name="e_amount_date">%1$s · %2$s</string>
     <string name="e_no_matches">No matching transactions.</string>
+    <string name="e_no_transactions">No transactions yet.</string>
+    <string name="e_settlement_direction">%1$s paid %2$s</string>
+    <string name="e_share_payer">%1$s: %2$s (paid the bill)</string>
+    <string name="e_share_owes">%1$s: %2$s (owes %3$s)</string>
     <string name="e_loading_history">Loading history…</string>
     <string name="e_loading_details">Loading transaction…</string>
     <string name="e_checking_lock">Checking expense lock…</string>
