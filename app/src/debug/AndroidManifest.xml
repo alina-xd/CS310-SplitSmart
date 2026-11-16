@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Local Firebase Emulator Suite uses HTTP. Release builds keep the platform default. -->
-    <application android:usesCleartextTraffic="true" />
+    <application android:usesCleartextTraffic="true">
+        <service
+            android:name=".testing.RemoteUserService"
+            android:exported="false"
+            android:process=":remoteTest" />
+    </application>
 </manifest>

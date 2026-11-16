@@ -1,5 +1,6 @@
 package com.team19.splitsmart;
 
+import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.*;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -8,8 +9,17 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
 import android.os.SystemClock;
 import android.view.View;
 import android.widget.*;
@@ -17,6 +27,8 @@ import android.widget.*;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import androidx.test.runner.lifecycle.Stage;
 
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -24,8 +36,14 @@ import com.google.firebase.firestore.Source;
 import com.team19.splitsmart.data.model.*;
 import com.team19.splitsmart.data.repository.TransactionRepository;
 import com.team19.splitsmart.service.*;
+import com.team19.splitsmart.testing.RemoteUserService;
 import com.team19.splitsmart.ui.Extras;
+import com.team19.splitsmart.ui.account.LoginActivity;
+import com.team19.splitsmart.ui.account.ProfileActivity;
+import com.team19.splitsmart.ui.account.RegisterActivity;
 import com.team19.splitsmart.ui.group.GroupActivity;
+import com.team19.splitsmart.ui.group.GroupFormActivity;
+import com.team19.splitsmart.ui.group.GroupListActivity;
 import com.team19.splitsmart.ui.summary.*;
 import com.team19.splitsmart.ui.transaction.*;
 import com.team19.splitsmart.util.Callback;
@@ -56,6 +74,7 @@ public class FullAppIntegrationTest {
     private final TransactionRepository transactions = new TransactionRepository();
     private Group group;
     private String a, b, c, d;
+    private String navigationGroupId;
 
     @BeforeClass
     public static void registerUsers() throws Exception {
@@ -63,13 +82,15 @@ public class FullAppIntegrationTest {
                 "10.0.2.2:8080", FirebaseFirestore.getInstance().getFirestoreSettings().getHost());
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         long idBase = 1000000000L + Math.floorMod(System.currentTimeMillis(), 8000000000L);
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
             final int index = i;
             User user =
                     await(
                             cb ->
                                     auth.register(
-                                            new String[] {"Alice", "Bob", "Carol", "David"}[index],
+                                            new String[] {
+                                                "Alice", "Bob", "Carol", "David", "Eve"
+                                            }[index],
                                             "test-" + suffix + "-" + index + "@usc.edu",
                                             String.valueOf(idBase + index),
                                             PASSWORD,
@@ -104,6 +125,9 @@ public class FullAppIntegrationTest {
     public void removeGroup() throws Exception {
         if (group != null)
             FullAppIntegrationTest.<Void>await(cb -> groups.deleteGroup(group.getGroupId(), a, cb));
+        if (navigationGroupId != null)
+            FullAppIntegrationTest.<Void>await(
+                    cb -> groups.deleteGroup(navigationGroupId, a, cb));
     }
 
     @Test
@@ -235,6 +259,73 @@ public class FullAppIntegrationTest {
         assertFalse(FullAppIntegrationTest.<Boolean>await(cb -> settlements.isLocked(expense, cb)));
         FullAppIntegrationTest.<Void>await(cb -> expenses.deleteExpense(expense, b, cb));
         assertEquals(0, pair(a, b));
+    }
+
+    @Test
+    public void onlySignedInGroupMembersCanCreateExpensesOrSettlements() throws Exception {
+        String outsider = users.get(4).getUid();
+        try {
+            FullAppIntegrationTest.<User>await(
+                    cb -> auth.login(users.get(4).getUscEmail(), PASSWORD, cb));
+
+            Expense outsiderExpense =
+                    expense("Outsider expense", a, 1000, SplitMethod.EQUAL, a, 0.0, b, 0.0);
+            outsiderExpense.setCreatorId(outsider);
+            FullAppIntegrationTest.<Void>assertError(
+                    "permission", cb -> expenses.createExpense(outsiderExpense, cb));
+
+            Settlement outsiderSettlement = payment(outsider, a, outsider, 100);
+            FullAppIntegrationTest.<Void>assertError(
+                    "member", cb -> settlements.createSettlement(outsiderSettlement, cb));
+
+            auth.logout();
+            assertFalse(auth.isSignedIn());
+            Expense unsignedExpense =
+                    expense("Unsigned expense", a, 1000, SplitMethod.EQUAL, a, 0.0, b, 0.0);
+            FullAppIntegrationTest.<Void>assertError(
+                    "permission", cb -> expenses.createExpense(unsignedExpense, cb));
+
+            Settlement unsignedSettlement = payment(a, b, a, 100);
+            FullAppIntegrationTest.<Void>assertError(
+                    "permission", cb -> settlements.createSettlement(unsignedSettlement, cb));
+        } finally {
+            auth.logout();
+            FullAppIntegrationTest.<User>await(
+                    cb -> auth.login(users.get(0).getUscEmail(), PASSWORD, cb));
+        }
+    }
+
+    @Test
+    public void multipleUsersCollaborateOnSharedGroup() throws Exception {
+        Expense shared = expense("Shared dinner", a, 2000, SplitMethod.EQUAL, a, 0.0, b, 0.0);
+        FullAppIntegrationTest.<Void>await(cb -> expenses.createExpense(shared, cb));
+        assertEquals(1000, pair(a, b));
+
+        try (ActivityScenario<BalanceActivity> alice = launch(BalanceActivity.class, null)) {
+            AtomicReference<Integer> appProcessId = new AtomicReference<>();
+            alice.onActivity(activity -> appProcessId.set(android.os.Process.myPid()));
+            waitFor(() -> text(alice, R.id.textToReceive).equals("To receive: $10.00"));
+
+            int bobProcessId =
+                    recordSettlementInRemoteProcess(
+                            users.get(1).getUscEmail(), group.getGroupId(), a, 500);
+            assertTrue(
+                    "Bob's actions must run in a separate Android process",
+                    bobProcessId != appProcessId.get());
+
+            waitFor(() -> text(alice, R.id.textToReceive).equals("To receive: $5.00"));
+            assertEquals(500, pair(a, b));
+            Settlement recorded =
+                    all().stream()
+                            .filter(t -> t instanceof Settlement)
+                            .map(t -> (Settlement) t)
+                            .findFirst()
+                            .orElseThrow(
+                                    () ->
+                                            new AssertionError(
+                                                    "Bob's settlement was not saved"));
+            assertEquals(b, recorded.getCreatorId());
+        }
     }
 
     @Test
@@ -436,6 +527,211 @@ public class FullAppIntegrationTest {
             screenshot("group-history");
         }
     }
+    /*
+     * Checks that each primary group action allows the user to return to the group screen.
+     */
+
+    @Test
+    public void primaryActionsAlwaysAllowReturningToGroup() throws Exception {
+        try (ActivityScenario<GroupActivity> screen = launch(GroupActivity.class, null)) {
+            onView(withId(R.id.buttonAddExpense)).perform(click());
+            waitFor(() -> isEnabledOnResumedActivity(R.id.buttonSave));
+            returnToGroup(screen);
+
+            onView(withId(R.id.buttonRecordSettlement)).perform(click());
+            waitFor(() -> isVisibleOnResumedActivity(R.id.inputSettlementAmount));
+            returnToGroup(screen);
+
+            onView(withId(R.id.buttonBalances)).perform(click());
+            onView(withId(R.id.textToReceive)).check(matches(isDisplayed()));
+            returnToGroup(screen);
+
+            onView(withId(R.id.buttonMonthlySummary)).perform(click());
+            onView(withId(R.id.spinnerMonth)).check(matches(isDisplayed()));
+            returnToGroup(screen);
+        }
+    }
+
+    @Test
+    public void requiredFieldsRejectBlankInputAcrossForms() throws Exception {
+        Expense debt =
+                expense("Required-field setup", a, 2000, SplitMethod.EQUAL, a, 0.0, b, 0.0);
+        FullAppIntegrationTest.<Void>await(cb -> expenses.createExpense(debt, cb));
+
+        try (ActivityScenario<ExpenseFormActivity> screen =
+                launch(ExpenseFormActivity.class, null)) {
+            waitFor(() -> enabled(screen, R.id.buttonSave));
+            onView(withId(R.id.editExpenseAmount)).perform(replaceText(""), closeSoftKeyboard());
+            onView(withId(R.id.buttonSave)).perform(scrollTo(), click());
+            waitFor(() -> hasError(screen, R.id.editExpenseAmount));
+
+            onView(withId(R.id.editExpenseAmount))
+                    .perform(replaceText("10.00"), closeSoftKeyboard());
+            onView(withId(R.id.buttonSave)).perform(scrollTo(), click());
+            waitFor(() -> hasError(screen, R.id.editExpenseTitle));
+
+            onView(withId(R.id.editExpenseTitle))
+                    .perform(replaceText("Split validation"), closeSoftKeyboard());
+            onView(withId(R.id.radioSplitExact)).perform(scrollTo(), click());
+            waitFor(
+                    () ->
+                            text(screen, R.id.textSplitStatus)
+                                    .contains("Enter an amount for every participant"));
+            onView(withId(R.id.buttonSave)).perform(scrollTo(), click());
+            waitFor(() -> visible(screen, R.id.textSplitError));
+
+            onView(withId(R.id.radioSplitPercent)).perform(scrollTo(), click());
+            waitFor(
+                    () ->
+                            text(screen, R.id.textSplitStatus)
+                                    .contains("Enter a percentage for every participant"));
+            onView(withId(R.id.buttonSave)).perform(scrollTo(), click());
+            waitFor(() -> visible(screen, R.id.textSplitError));
+        }
+
+        try (ActivityScenario<SettlementFormActivity> screen =
+                launch(SettlementFormActivity.class, null)) {
+            waitFor(() -> enabled(screen, R.id.radioPaidMe));
+            onView(withId(R.id.radioPaidMe)).perform(click());
+            waitFor(() -> enabled(screen, R.id.buttonSave));
+            onView(withId(R.id.inputSettlementAmount))
+                    .perform(replaceText(""), closeSoftKeyboard());
+            onView(withId(R.id.buttonSave)).perform(scrollTo(), click());
+            waitFor(() -> hasError(screen, R.id.inputSettlementAmount));
+        }
+
+        try (ActivityScenario<GroupFormActivity> screen =
+                ActivityScenario.launch(GroupFormActivity.class)) {
+            onView(withId(R.id.buttonSave)).perform(click());
+            waitFor(() -> hasError(screen, R.id.editGroupName));
+        }
+
+        try (ActivityScenario<GroupActivity> screen = launch(GroupActivity.class, null)) {
+            waitFor(() -> visible(screen, R.id.buttonAddMember));
+            onView(withId(R.id.buttonAddMember)).perform(click());
+            waitFor(() -> hasError(screen, R.id.editMemberEmail));
+        }
+
+        try (ActivityScenario<ProfileActivity> screen =
+                ActivityScenario.launch(ProfileActivity.class)) {
+            waitFor(() -> !text(screen, R.id.editName).isEmpty());
+            onView(withId(R.id.editName)).perform(replaceText(""), closeSoftKeyboard());
+            onView(withId(R.id.buttonSaveName)).perform(click());
+            waitFor(() -> hasError(screen, R.id.editName));
+        }
+
+        try (ActivityScenario<RegisterActivity> screen =
+                ActivityScenario.launch(RegisterActivity.class)) {
+            onView(withId(R.id.buttonCreateAccount)).perform(click());
+            waitFor(
+                    () ->
+                            hasError(screen, R.id.editName)
+                                    && hasError(screen, R.id.editEmail)
+                                    && hasError(screen, R.id.editUscId)
+                                    && hasError(screen, R.id.editPassword));
+        }
+
+        auth.logout();
+        try {
+            try (ActivityScenario<LoginActivity> screen =
+                    ActivityScenario.launch(LoginActivity.class)) {
+                onView(withId(R.id.buttonLogin)).perform(click());
+                waitFor(() -> visible(screen, R.id.textLoginError));
+                assertFalse(text(screen, R.id.textLoginError).trim().isEmpty());
+            }
+        } finally {
+            FullAppIntegrationTest.<User>await(
+                    cb -> auth.login(users.get(0).getUscEmail(), PASSWORD, cb));
+        }
+    }
+
+    @Test
+    public void canReturnFromGroupToProfileAndEditName() throws Exception {
+        String originalName = users.get(0).getName();
+        try (ActivityScenario<GroupListActivity> screen =
+                ActivityScenario.launch(GroupListActivity.class)) {
+            waitFor(() -> hasListItemOnResumedActivity(
+                    R.id.listGroups, "Integration Trip  (owner)"));
+            onData(is("Integration Trip  (owner)"))
+                    .inAdapterView(withId(R.id.listGroups))
+                    .perform(click());
+            onView(withId(R.id.buttonAddExpense)).check(matches(isDisplayed()));
+
+            onView(isRoot()).perform(pressBack());
+            onView(withId(R.id.buttonProfile)).check(matches(isDisplayed()));
+            onView(withId(R.id.buttonProfile)).perform(click());
+            onView(withId(R.id.editName)).check(matches(isDisplayed()));
+            waitFor(() -> originalName.equals(textOnResumedActivity(R.id.editName)));
+            onView(withId(R.id.textEmail)).check(matches(withText(containsString("@usc.edu"))));
+            onView(withId(R.id.textUscId)).check(matches(withText(containsString("USC ID:"))));
+
+            onView(isRoot()).perform(pressBack());
+            waitFor(
+                    () ->
+                            screen.getState() == androidx.lifecycle.Lifecycle.State.RESUMED);
+            onView(withId(R.id.buttonProfile)).check(matches(isDisplayed()));
+            onView(withId(R.id.buttonProfile)).perform(click());
+            waitFor(() -> originalName.equals(textOnResumedActivity(R.id.editName)));
+
+            onView(withId(R.id.editName)).perform(replaceText("   "), closeSoftKeyboard());
+            onView(withId(R.id.buttonSaveName)).perform(click());
+            waitFor(() -> hasErrorOnResumedActivity(R.id.editName));
+
+            onView(withId(R.id.editName))
+                    .perform(replaceText("Alice Usability"), closeSoftKeyboard());
+            onView(withId(R.id.buttonSaveName)).perform(click());
+            waitFor(() -> currentUserHasName("Alice Usability"));
+            assertEquals("Alice Usability", textOnResumedActivity(R.id.editName));
+
+            onView(withId(R.id.editName)).perform(replaceText(originalName), closeSoftKeyboard());
+            onView(withId(R.id.buttonSaveName)).perform(click());
+            waitFor(() -> currentUserHasName(originalName));
+
+            onView(isRoot()).perform(pressBack());
+            onView(withId(R.id.buttonProfile)).check(matches(isDisplayed()));
+
+            String newGroupName = "Usability " + UUID.randomUUID().toString().substring(0, 8);
+            onView(withId(R.id.buttonCreateGroup)).perform(click());
+            onView(withId(R.id.editGroupName)).check(matches(isDisplayed()));
+            onView(isRoot()).perform(pressBack());
+            waitFor(
+                    () ->
+                            screen.getState() == androidx.lifecycle.Lifecycle.State.RESUMED);
+            onView(withId(R.id.buttonCreateGroup)).check(matches(isDisplayed()));
+
+            onView(withId(R.id.buttonCreateGroup)).perform(click());
+            onView(withId(R.id.editGroupName)).check(matches(isDisplayed()));
+            onView(withId(R.id.editGroupName))
+                    .perform(replaceText(newGroupName), closeSoftKeyboard());
+            onView(withId(R.id.editGroupDescription))
+                    .perform(replaceText("Navigation test"), closeSoftKeyboard());
+            onView(withId(R.id.buttonSave)).perform(click());
+            onView(withId(R.id.buttonAddExpense)).check(matches(isDisplayed()));
+
+            Group created =
+                    FullAppIntegrationTest.<List<Group>>await(
+                                    cb -> groups.getGroupsFor(a, cb))
+                            .stream()
+                            .filter(candidate -> newGroupName.equals(candidate.getName()))
+                            .findFirst()
+                            .orElseThrow(
+                                    () -> new AssertionError("Created group not found"));
+            navigationGroupId = created.getGroupId();
+
+            onView(isRoot()).perform(pressBack());
+            waitFor(
+                    () ->
+                            screen.getState() == androidx.lifecycle.Lifecycle.State.RESUMED
+                                    && hasListItemOnResumedActivity(
+                                            R.id.listGroups, newGroupName + "  (owner)"));
+        }
+    }
+
+    private void returnToGroup(ActivityScenario<GroupActivity> screen) {
+        onView(isRoot()).perform(pressBack());
+        waitFor(() -> screen.getState() == androidx.lifecycle.Lifecycle.State.RESUMED);
+        onView(withId(R.id.buttonAddExpense)).check(matches(isDisplayed()));
+    }
 
     private void fillSplit(ActivityScenario<ExpenseFormActivity> screen, String[] values) {
         screen.onActivity(
@@ -462,6 +758,71 @@ public class FullAppIntegrationTest {
         e.setShares(expenses.previewShares(cents, method, map));
         e.setSplitInputs(method == SplitMethod.EQUAL ? new LinkedHashMap<>() : map);
         return e;
+    }
+
+    private int recordSettlementInRemoteProcess(
+            String email, String groupId, String recipientId, long amountCents) throws Exception {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        CountDownLatch connected = new CountDownLatch(1);
+        CountDownLatch completed = new CountDownLatch(1);
+        AtomicReference<Messenger> remote = new AtomicReference<>();
+        AtomicReference<Bundle> response = new AtomicReference<>();
+        ServiceConnection connection =
+                new ServiceConnection() {
+                    @Override
+                    public void onServiceConnected(ComponentName name, IBinder binder) {
+                        remote.set(new Messenger(binder));
+                        connected.countDown();
+                    }
+
+                    @Override
+                    public void onServiceDisconnected(ComponentName name) {
+                        remote.set(null);
+                    }
+                };
+        boolean bound =
+                context.bindService(
+                        new Intent(context, RemoteUserService.class),
+                        connection,
+                        Context.BIND_AUTO_CREATE);
+        assertTrue("Could not bind to Bob's remote process", bound);
+        try {
+            assertTrue(
+                    "Bob's remote process did not connect",
+                    connected.await(15, TimeUnit.SECONDS));
+            Messenger replyTo =
+                    new Messenger(
+                            new Handler(
+                                    Looper.getMainLooper(),
+                                    message -> {
+                                        if (message.what == RemoteUserService.RESULT) {
+                                            response.set(message.getData());
+                                            completed.countDown();
+                                            return true;
+                                        }
+                                        return false;
+                                    }));
+            Message request = Message.obtain(null, RemoteUserService.RECORD_SETTLEMENT);
+            Bundle data = new Bundle();
+            data.putString(RemoteUserService.EMAIL, email);
+            data.putString(RemoteUserService.PASSWORD, PASSWORD);
+            data.putString(RemoteUserService.GROUP_ID, groupId);
+            data.putString(RemoteUserService.RECIPIENT_ID, recipientId);
+            data.putLong(RemoteUserService.AMOUNT_CENTS, amountCents);
+            request.setData(data);
+            request.replyTo = replyTo;
+            remote.get().send(request);
+
+            assertTrue(
+                    "Bob's remote process did not finish its settlement",
+                    completed.await(30, TimeUnit.SECONDS));
+            Bundle result = response.get();
+            String error = result.getString(RemoteUserService.ERROR);
+            assertNull("Bob's remote process failed: " + error, error);
+            return result.getInt(RemoteUserService.PROCESS_ID);
+        } finally {
+            context.unbindService(connection);
+        }
     }
 
     private Settlement payment(String payer, String recipient, String creator, long cents) {
@@ -514,6 +875,112 @@ public class FullAppIntegrationTest {
         AtomicReference<Boolean> r = new AtomicReference<>(false);
         scenario.onActivity(a -> r.set(a.findViewById(id).getVisibility() == View.VISIBLE));
         return r.get();
+    }
+
+    /* Helpers for checking views on the currently resumed activity. */
+
+    private static boolean isVisibleOnResumedActivity(int id) {
+        AtomicReference<Boolean> result = new AtomicReference<>(false);
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            for (android.app.Activity activity :
+                                    ActivityLifecycleMonitorRegistry.getInstance()
+                                            .getActivitiesInStage(Stage.RESUMED)) {
+                                View view = activity.findViewById(id);
+                                if (view != null) {
+                                    result.set(view.getVisibility() == View.VISIBLE);
+                                    return;
+                                }
+                            }
+                        });
+        return result.get();
+    }
+
+    private static String textOnResumedActivity(int id) {
+        AtomicReference<String> result = new AtomicReference<>("");
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            for (android.app.Activity activity :
+                                    ActivityLifecycleMonitorRegistry.getInstance()
+                                            .getActivitiesInStage(Stage.RESUMED)) {
+                                View view = activity.findViewById(id);
+                                if (view instanceof TextView) {
+                                    result.set(((TextView) view).getText().toString());
+                                    return;
+                                }
+                            }
+                        });
+        return result.get();
+    }
+
+    private boolean currentUserHasName(String expected) {
+        try {
+            return expected.equals(await(auth::getCurrentUser).getName());
+        } catch (Exception e) {
+            throw new AssertionError("Could not verify the saved profile name", e);
+        }
+    }
+
+    private static boolean hasListItemOnResumedActivity(int id, String expected) {
+        AtomicReference<Boolean> result = new AtomicReference<>(false);
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            for (android.app.Activity activity :
+                                    ActivityLifecycleMonitorRegistry.getInstance()
+                                            .getActivitiesInStage(Stage.RESUMED)) {
+                                View view = activity.findViewById(id);
+                                if (view instanceof ListView) {
+                                    ListView list = (ListView) view;
+                                    for (int i = 0; i < list.getCount(); i++) {
+                                        if (expected.equals(list.getItemAtPosition(i).toString())) {
+                                            result.set(true);
+                                            return;
+                                        }
+                                    }
+                                    return;
+                                }
+                            }
+                        });
+        return result.get();
+    }
+
+    private static boolean isEnabledOnResumedActivity(int id) {
+        AtomicReference<Boolean> result = new AtomicReference<>(false);
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            for (android.app.Activity activity :
+                                    ActivityLifecycleMonitorRegistry.getInstance()
+                                            .getActivitiesInStage(Stage.RESUMED)) {
+                                View view = activity.findViewById(id);
+                                if (view != null) {
+                                    result.set(view.isEnabled());
+                                    return;
+                                }
+                            }
+                        });
+        return result.get();
+    }
+
+    private static boolean hasErrorOnResumedActivity(int id) {
+        AtomicReference<Boolean> result = new AtomicReference<>(false);
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            for (android.app.Activity activity :
+                                    ActivityLifecycleMonitorRegistry.getInstance()
+                                            .getActivitiesInStage(Stage.RESUMED)) {
+                                View view = activity.findViewById(id);
+                                if (view instanceof EditText) {
+                                    result.set(((EditText) view).getError() != null);
+                                    return;
+                                }
+                            }
+                        });
+        return result.get();
     }
 
     private static <A extends android.app.Activity> boolean hasError(
