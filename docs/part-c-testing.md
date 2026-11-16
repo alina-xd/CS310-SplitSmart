@@ -31,6 +31,8 @@ Then, with the Android emulator running:
 ./gradlew connectedDebugAndroidTest --no-watch-fs -Pandroid.testInstrumentationRunnerArguments.class=com.team19.splitsmart.PartCBlackBoxTest
 ```
 
+To keep the screenshots, add `-Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true` (otherwise Gradle uninstalls the app after the run, which deletes them). Turning off the emulator's animations (Developer options, or `adb shell settings put global window_animation_scale 0`, and the same for `transition_animation_scale` and `animator_duration_scale`) makes Espresso runs more reliable.
+
 The tests create their own users and a fresh group, and they delete the group afterwards. They never touch the shared database; the test fails right away if Firestore isn't pointed at the local emulator. Screenshots are saved on the emulator under `/sdcard/Android/data/com.team19.splitsmart/files/test-evidence/` (`bb-c1-equal-split.png` and so on).
 
 ## Black-box tests
@@ -40,21 +42,27 @@ Designed from the requirements only, using equivalence classes (valid and invali
 ### BB-C1 `bbC1_equalSplitOfTenDollarsThreeWays_showsExtraCentAndSaves`
 - **What it does:** As Alice, opens Add expense, enters "Pizza" for $10.00, unchecks David, and leaves the default Equal split. Checks that the preview shows $3.34, $3.33, $3.33, that Bob's row says he owes Alice, and that the status says the shares add up to $10.00. Saves, then checks that the stored expense is an Equal split with 3 shares totalling exactly 1000 cents.
 - **Rationale:** $10.00 / 3 is the customer's own example of an amount that can't be divided evenly. It's the boundary where rounding can lose or gain a cent. It also checks that Equal is the default (UC-2 step 2).
+- **Result:** passes (Pixel 4 emulator, Android 13, local Firebase emulators, 2026-11-16).
 - **Bugs found:** none.
 
 ### BB-C2 `bbC2_exactAmountsNotAddingUp_blockSave_thenCorrectedAmountsSave`
 - **What it does:** $30.00 split by exact amount as 5 / 10 / 10. Checks that the status shows "Shares add up to $25.00 but the expense is $30.00" and "$5.00 left to assign", that pressing Save shows the split error, and that nothing is saved. Then corrects the amounts to 5 / 10 / 15 and checks that the expense saves with shares of 500 / 1000 / 1500 cents.
 - **Rationale:** One input from the invalid class (sum below the total) and one from the valid class (sum equal to the total), matching UC-2 alternate path 5.3. The 5 / 10 / 15 values come from the README's checklist.
-- **Bugs found:** none.
+- **Result:** passes (Pixel 4 emulator, Android 13, local Firebase emulators, 2026-11-16).
+- **Bug found (by this test and BB-C3 and BB-C4):**
+  - **What it is:** after Save is pressed with an invalid split, the same error appears twice. The split section already shows it live in its status line, and then `ExpenseFormActivity.showFieldError` shows it again in `textSplitError` right below (see screenshot `bb-c2-exact-mismatch.png`).
+  - **Status:** not fixed yet. It's cosmetic (nothing wrong is saved). `ExpenseFormActivity` belongs to Part B, so the fix is with that owner: skip `textSplitError` for the `"split"` field, or hide the section's status line after a failed save.
 
 ### BB-C3 `bbC3_percentagesMustTotal100_andZeroPercentIsAllowed`
 - **What it does:** $30.00 split by percentage as 20 / 30 / 40 %. Checks for "Percentages add up to 90%" and "10% left to assign", and that Save is refused. Then enters 0 / 50 / 50 % and checks the previews of $0.00 and $15.00, and that the saved shares are 0 / 1500 / 1500.
 - **Rationale:** 90% falls in the invalid class (not 100), per UC-2 path 5.4. 0% is the lower boundary of a valid percentage, which FR-2.4.3 explicitly allows.
-- **Bugs found:** none.
+- **Result:** passes (Pixel 4 emulator, Android 13, local Firebase emulators, 2026-11-16).
+- **Bugs found:** the duplicate split error described under BB-C2.
 
 ### BB-C4 `bbC4_blankExactAmount_showsMessageInsteadOfCrashing`
 - **What it does:** $12.00 split by exact amount, with Carol's box left empty (6 / 6 / blank). Checks that the status says "Enter an amount for every participant", that Save shows the split error, that the form stays open, and that nothing is saved.
 - **Rationale:** A blank field is the most common partly finished input. FR-2.4.2 says every participant must be assigned an amount.
+- **Result:** passes (Pixel 4 emulator, Android 13, local Firebase emulators, 2026-11-16).
 - **Bug found:**
   - **What it was:** in `ExpenseSplitSection.recompute()`, the expression `method == EQUAL ? 0.0 : parseInput(uid)` mixed a primitive `0.0` with a `Double`. Java therefore unboxed the `null` that `parseInput` returns for a blank box, and the app crashed with a `NullPointerException` as soon as a box was empty.
   - **Status:** fixed in commit `e0da7d2` by writing `Double.valueOf(0.0)`, which keeps both sides boxed.
@@ -67,7 +75,11 @@ Designed from the requirements only, using equivalence classes (valid and invali
   - With the screen still open, adds a $12.50 expense and checks that it updates by itself to 3 expenses and $62.50.
   - Switches to last month and checks that it shows 1 expense and $100.00.
 - **Rationale:** Covers each rule of FR-5.2: settlements are excluded, an expense belongs to the month of its creation date, and the category totals add up to the total. It also covers the "updates immediately" requirement, without a refresh. An expense in a different month and a settlement in the same month are the two inputs most likely to be counted by mistake.
+- **Result:** passes (Pixel 4 emulator, Android 13, local Firebase emulators, 2026-11-16).
 - **Bugs found:** none.
+
+### Test-code issue fixed during the first run
+On the first run BB-C1 to BB-C4 failed with `PerformException: Scrolling to view was attempted, but the view is not displayed` when tapping Save. The expense form is a `NestedScrollView`, which Espresso's `scrollTo()` can't scroll. This was a problem in the test, not the app: the `save()` helper now scrolls the form to the bottom (as a user's swipe would) and checks that Save is visible before tapping it. BB-C5 passed on the first run.
 
 ## White-box tests
 

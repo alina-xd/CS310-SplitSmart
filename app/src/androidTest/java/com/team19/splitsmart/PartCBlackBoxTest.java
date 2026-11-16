@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -303,8 +304,15 @@ public class PartCBlackBoxTest {
                 .perform(scrollTo(), click());
     }
 
+    /**
+     * Scrolls to the bottom and taps Save. The form is a NestedScrollView, which Espresso's
+     * scrollTo() can't scroll, so the test scrolls it the way a user's swipe would.
+     */
     private void save(ActivityScenario<ExpenseFormActivity> screen) {
-        onView(withId(R.id.buttonSave)).perform(scrollTo(), click());
+        screen.onActivity(activity ->
+                ((NestedScrollView) activity.findViewById(R.id.main)).fullScroll(View.FOCUS_DOWN));
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        onView(withId(R.id.buttonSave)).check(matches(isDisplayed())).perform(click());
     }
 
     /** Types one value per split row (payer first), like a user filling each box. */
