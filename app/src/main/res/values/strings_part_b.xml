@@ -13,6 +13,7 @@
     <string name="b_note">Note (optional)</string>
     <string name="b_save">Save expense</string>
     <string name="b_invalid_amount">Enter a valid amount with at most 2 decimals</string>
+    <string name="b_fix_split">Fix the split above before saving.</string>
     <string name="b_group_missing">This group no longer exists.</string>
     <string name="b_expense_missing">This expense no longer exists.</string>
     <string-array name="b_categories">
