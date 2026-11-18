@@ -317,7 +317,8 @@ public class ExpenseFormActivity extends AppCompatActivity {
         try {
             toSave.setShares(splitSection.getShares());
         } catch (ValidationException e) {
-            showFieldError(e);
+            // The split section already shows this message in its status line, so don't repeat it.
+            showText(splitError, getString(R.string.b_fix_split));
             return;
         }
         toSave.setSplitMethod(splitSection.getMethod());
